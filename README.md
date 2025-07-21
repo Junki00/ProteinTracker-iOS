@@ -2,6 +2,8 @@
 
 A simple and elegant iOS app to track daily protein intake, built with SwiftUI.
 
+<img width="505" height="663" alt="Image" src="https://github.com/user-attachments/assets/6989dc88-fb69-41f7-8220-122fb1be844b" />
+
 ---
 
 ### [English]
