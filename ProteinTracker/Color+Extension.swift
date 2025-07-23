@@ -18,6 +18,10 @@ extension Color {
     static let secondaryText = Color(hex: "#676769")
     static let shallowText = Color(hex: "#FFFFFF")
     
+    // MARK: - Apple Colors
+    static let secondaryBackground = Color(hex: "#F2F2F7")
+
+    
     
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
