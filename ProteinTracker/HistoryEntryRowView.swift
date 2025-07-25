@@ -8,29 +8,32 @@
 import SwiftUI
 
 struct HistoryEntryRowView: View {
+    
+    let entry: ProteinEntry
+    
     var body: some View {
         HStack(spacing: 16){
             ZStack {
                 Circle()
                     .fill(Color.appPrimary)
-                Text("20.5")
+                Text(String(format: "%.1f", entry.proteinAmount))
                     .font(.headline)
                     .foregroundColor(.appBackground)
             }
             .frame(width: 50, height: 50)
             
             VStack(alignment:.leading, spacing: 4) {
-                Text("On Whey Protein Powder, Strawberry Flavor")
+                Text(entry.foodName)
                     .font(.headline)
                     .foregroundColor(.primaryText)
                     .lineLimit(1)
-                Text("1 Spoon")
+                Text(entry.description)
                     .font(.subheadline)
                     .foregroundColor(.appPrimary)
                     .bold()
             }
             Spacer()
-            Text("15:45")
+            Text(entry.addTime, style: .time)
                 .font(.subheadline)
                 .foregroundColor(.secondaryText)
             Image(systemName: "checkmark")
@@ -50,9 +53,12 @@ struct HistoryEntryRowView: View {
 }
 
 #Preview {
+    let mockEntry = ProteinEntry(proteinAmount: 25.5, foodName: "Whey dProtein Shake", description: "Post-workout")
+    
     ZStack {
         Color.appSecondary.ignoresSafeArea()
-        HistoryEntryRowView()
+        HistoryEntryRowView(entry: mockEntry)
             .padding()
     }
 }
+

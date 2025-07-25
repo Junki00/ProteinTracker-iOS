@@ -8,6 +8,10 @@
 import SwiftUI
 
 struct TodayView: View {
+    @StateObject private var viewModel = ProteinDataViewModel()
+    
+    @State private var isShowingAddSheet = false
+    
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             ScrollView {
@@ -79,9 +83,11 @@ struct TodayView: View {
                                 .padding()
                         }
                         
-                        HistoryEntryRowView()
-                        HistoryEntryRowView()
-                        HistoryEntryRowView()
+                        
+                        ForEach(viewModel.entries) { entry in
+                            HistoryEntryRowView(entry: entry)
+                        }
+                    
 
                         
                     }
@@ -99,22 +105,36 @@ struct TodayView: View {
 
             
             Button(
-                action: {print("FAB Tapped!")}
+                action: {
+                    isShowingAddSheet = true
+                }
             ) {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 50))
                     .foregroundColor(.appPrimary)
                     .shadow(color: .primaryText.opacity(0.5), radius: 5, y: 3)
             }.padding()
-            
-            
-            
-
-            
         }
+        .sheet(isPresented: $isShowingAddSheet) {
+            AddEntryModalView()
+        }
+        
     }
 }
 
 #Preview {
     TodayView()
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

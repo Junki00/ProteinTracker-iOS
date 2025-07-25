@@ -12,6 +12,8 @@ enum EntryType {
 }
 
 struct AddEntryModalView: View {
+    @Environment(\.dismiss) var dismiss
+    
     @State private var proteinAmount: String = ""
     @State private var foodName: String = ""
     @State private var description: String = ""
@@ -22,14 +24,16 @@ struct AddEntryModalView: View {
         ScrollView {
             VStack {
                 HStack {
-                    Button (action: { print("tapped")}) {
+                    Button (action: {
+                        dismiss()
+                    }) {
                         Text("Cancel")
                     }
                     Spacer()
                     Text("Fast Add or Pick Below")
                         .font(.headline)
                     Spacer()
-                    Button (action: { print("tapped")}) {
+                    Button (action: { dismiss() }) {
                         Text("Add")
                             .bold()
                     }
