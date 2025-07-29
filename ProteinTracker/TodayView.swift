@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct TodayView: View {
-    @StateObject private var viewModel = ProteinDataViewModel()
-    
+    @EnvironmentObject var viewModel: ProteinDataViewModel
     @State private var isShowingAddSheet = false
     
     var body: some View {
@@ -83,15 +82,21 @@ struct TodayView: View {
                                 .padding()
                         }
                         
-                        
-                        ForEach(viewModel.entries) { entry in
-                            HistoryEntryRowView(entry: entry)
+                        List {
+                            ForEach(viewModel.entries) { entry in
+                                HistoryEntryRowView(entry: entry)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
+                                    .listRowInsets(EdgeInsets())
+                            }
+                            .onDelete { indexSet in
+                                viewModel.deleteEntry(at: indexSet)
+                            }
                         }
-                    
-
-                        
+                        .listStyle(.plain)
+                        .frame(height: CGFloat(viewModel.entries.count*80))
                     }
-                    .padding()
+                    .padding(.vertical)
                     .background(RoundedRectangle(cornerRadius: 12).fill( Color.appSecondary))
                     
 
@@ -124,6 +129,7 @@ struct TodayView: View {
 
 #Preview {
     TodayView()
+        .environmentObject(ProteinDataViewModel())
 }
 
 

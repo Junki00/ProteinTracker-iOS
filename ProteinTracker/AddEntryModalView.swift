@@ -12,12 +12,18 @@ enum EntryType {
 }
 
 struct AddEntryModalView: View {
+    @EnvironmentObject var viewModel: ProteinDataViewModel
+    
     @Environment(\.dismiss) var dismiss
     
     @State private var proteinAmount: String = ""
     @State private var foodName: String = ""
     @State private var description: String = ""
     @State private var selection: EntryType = .favorites
+    
+    private var isFormValid: Bool {
+        Double(proteinAmount) != nil
+    }
     
     var body: some View {
         
@@ -33,9 +39,31 @@ struct AddEntryModalView: View {
                     Text("Fast Add or Pick Below")
                         .font(.headline)
                     Spacer()
-                    Button (action: { dismiss() }) {
+                    Button (action: {
+                        if let amount = Double(proteinAmount) {
+                            let finalFoodName: String
+                            if foodName.isEmpty {
+                                    let formatter = DateFormatter()
+                                    formatter.dateFormat = "HH:mm"
+                                    let timeString = formatter.string(from: Date())
+                                    
+                                    finalFoodName = "Quick Add at \(timeString)"
+                                } else {
+                                    finalFoodName = foodName
+                                }
+                            
+                            
+                            viewModel.addEntry(proteinAmount: amount, foodName: finalFoodName, description: description)
+                        }
+
+                        
+                        
+                        dismiss()
+                    }) {
                         Text("Add")
                             .bold()
+                            .disabled(!isFormValid)
+                            .foregroundColor(isFormValid ? .appPrimary : .gray)
                     }
                     
                 }
@@ -87,10 +115,13 @@ struct AddEntryModalView: View {
                 }
 
             }
-        }.background(Color.secondaryBackground)
+        }
+        .background(Color.secondaryBackground)
+        .presentationDetents([.fraction(0.62), .large])
     }
 }
 
 #Preview {
     AddEntryModalView()
+        .environmentObject(ProteinDataViewModel())
 }

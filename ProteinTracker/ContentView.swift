@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var viewModel = ProteinDataViewModel()
     var body: some View {
         TabView {
             TodayView()
@@ -29,6 +30,7 @@ struct ContentView: View {
                 }
         }
         .tint(Color.appPrimary)
+        .environmentObject(viewModel)
     }
 }
 
