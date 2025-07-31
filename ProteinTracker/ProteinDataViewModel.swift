@@ -11,7 +11,15 @@ import Foundation
 class ProteinDataViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
+    
+    @Published var dailyGoal:Double = 240.0
+    
     @Published var entries: [ProteinEntry] = []
+    
+
+
+    
+    
     private var dataFileURL: URL {
         let docDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         return docDirectory.appendingPathComponent("protein_entries.json")
@@ -34,6 +42,31 @@ class ProteinDataViewModel: ObservableObject {
     
     func deleteEntry (at offsets: IndexSet) {
         entries.remove(atOffsets: offsets)
+    }
+    
+    // temprory for development
+    func resetToMockData() {
+        print("🔄 Resetting to mock data.")
+        loadMockData()
+    }
+    
+    var totalProteinToday: Double {
+        let todaysEntries = entries.filter{ Calendar.current.isDateInToday($0.addTime) }
+        return todaysEntries.reduce(0) { sum, entry in
+            sum + entry.proteinAmount
+        }
+    }
+    
+    var stillNeedProtein: Double {
+        max(0, dailyGoal - totalProteinToday)
+    }
+    
+    var progess: Double {
+        if dailyGoal == 0 {
+            return 0
+        }
+        
+        return min(1, totalProteinToday / dailyGoal)
     }
     
     func save () {
@@ -68,12 +101,6 @@ class ProteinDataViewModel: ObservableObject {
             loadMockData()
         }
     }
-    
-    
-    
-    
-    
-    
     
     private func loadMockData() {
         self.entries = [

@@ -15,12 +15,20 @@ struct TodayView: View {
         ZStack(alignment: .bottomTrailing) {
             ScrollView {
                 VStack(spacing: 20) {
+                    
                     HStack {
                         Text("June 30, 2025")
-                            .foregroundColor(.gray)
                         Spacer()
-                        Image(systemName: "person.circle")
+                        // Temporary for Reset
+                        Button(action: {
+                            viewModel.resetToMockData()
+                        }) {
+                            Image(systemName: "arrow.counterclockwise.circle.fill")
+                                .foregroundColor(.gray)
+                                .font(.title2)
+                        }
                     }
+                    
                     
                     VStack {
                         HStack {
@@ -49,7 +57,7 @@ struct TodayView: View {
                         
                         
                         HStack {
-                            Text("100.0 Gram")
+                            Text("\(String(format: "%.1f" ,viewModel.stillNeedProtein)) Grams")
                                 .font(.system(size: 40, weight: .heavy))
                                 .bold()
                                 .foregroundColor(.appBackground)
@@ -57,7 +65,7 @@ struct TodayView: View {
                         }
                         
                         HStack {
-                            Text("❤️ Your Daily Protein Goal is 240.5 Grams")
+                            Text("❤️ Your Daily Protein Goal is \(String(format: "%.1f", viewModel.dailyGoal)) Grams")
                             Image(systemName: "info.circle")
                             Spacer()
                         }
@@ -73,14 +81,24 @@ struct TodayView: View {
                     
                     
                     VStack(spacing: 10) {
-                        Text("You've already taken in 140.2 Grams until now.").font(.subheadline).bold()
+                        Text("You've already taken in \(String(format: "%.1f", viewModel.totalProteinToday)) Grams until now.").font(.subheadline).bold()
                         
-                        ZStack (alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 2).fill(Color.gray).frame(height: 2)
-                                .padding()
-                            RoundedRectangle(cornerRadius: 2).fill(Color.blue).frame(width: 200, height: 3)
-                                .padding()
+                        
+                        ZStack(alignment: .leading) {
+                            
+                            RoundedRectangle(cornerRadius: 3).fill(Color.gray.opacity(0.3))
+
+                            GeometryReader { geometry in
+                                RoundedRectangle(cornerRadius: 3).fill(Color.blue)
+                                    .frame(width: geometry.size.width * viewModel.progess)
+                            }
+
                         }
+                        .frame(height: 4)
+                        .padding(.horizontal)
+                        
+                        
+                        
                         
                         List {
                             ForEach(viewModel.entries) { entry in
@@ -98,6 +116,7 @@ struct TodayView: View {
                     }
                     .padding(.vertical)
                     .background(RoundedRectangle(cornerRadius: 12).fill( Color.appSecondary))
+                    
                     
 
                     
@@ -127,11 +146,11 @@ struct TodayView: View {
     }
 }
 
+
 #Preview {
     TodayView()
         .environmentObject(ProteinDataViewModel())
 }
-
 
 
 
