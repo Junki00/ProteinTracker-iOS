@@ -33,7 +33,7 @@ struct HistoryEntryRowView: View {
                     .bold()
             }
             Spacer()
-            Text(entry.addTime, style: .time)
+            Text(entry.addTime.formattedRelativeString())
                 .font(.subheadline)
                 .foregroundColor(.secondaryText)
             Image(systemName: "checkmark")
@@ -52,8 +52,9 @@ struct HistoryEntryRowView: View {
     }
 }
 
+
 #Preview {
-    let mockEntry = ProteinEntry(proteinAmount: 25.5, foodName: "Whey dProtein Shake", description: "Post-workout")
+    let mockEntry = ProteinEntry(proteinAmount: 25.5, foodName: "Whey Protein Shake", description: "Post-workout")
     
     ZStack {
         Color.appSecondary.ignoresSafeArea()

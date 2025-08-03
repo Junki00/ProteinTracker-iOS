@@ -1,5 +1,5 @@
 //
-//  Color+Extension.swift
+//  Color+Extensions.swift
 //  ProteinTracker
 //
 //  Created by drx on 2025/07/20.
