@@ -14,6 +14,15 @@ struct ProteinEntry: Identifiable, Codable {
     var foodName: String
     var description: String
     var addTime: Date
+    var emojiImage: String {
+        if proteinAmount < 40 {
+            "🥚"
+        } else if proteinAmount < 80 {
+            "🍗"
+        } else {
+            "🥩"
+        }
+    }
     
     init(id: UUID = UUID(), proteinAmount: Double, foodName: String, description: String, addTime: Date = Date()) {
         self.id = id
@@ -22,6 +31,4 @@ struct ProteinEntry: Identifiable, Codable {
         self.description = description
         self.addTime = addTime
     }
-    
-    
 }

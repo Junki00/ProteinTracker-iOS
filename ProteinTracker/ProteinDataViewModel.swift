@@ -10,15 +10,9 @@ import Foundation
 
 class ProteinDataViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
-    
-    
+
     @Published var dailyGoal:Double = 240.0
-    
     @Published var entries: [ProteinEntry] = []
-    
-
-
-    
     
     private var dataFileURL: URL {
         let docDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -65,11 +59,10 @@ class ProteinDataViewModel: ObservableObject {
         if dailyGoal == 0 {
             return 0
         }
-        
         return min(1, totalProteinToday / dailyGoal)
     }
     
-    func save () {
+    func save() {
         do {
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
@@ -79,7 +72,6 @@ class ProteinDataViewModel: ObservableObject {
             try data.write(to: dataFileURL)
             
             print("✅ Data saved successfully to: \(dataFileURL)")
-            
         } catch {
             print("❌ Failed to save data: \(error.localizedDescription)")
         }
@@ -104,7 +96,7 @@ class ProteinDataViewModel: ObservableObject {
     
     private func loadMockData() {
         self.entries = [
-            ProteinEntry(proteinAmount: 25.5, foodName: "Whey Protein Shake", description: "Post-workout", addTime: Date().addingTimeInterval(-1800)),
+            ProteinEntry(proteinAmount: 48.0, foodName: "Whey Protein Shake", description: "Post-workout", addTime: Date().addingTimeInterval(-1800)),
             ProteinEntry(proteinAmount: 40.2, foodName: "Grilled Chicken Breast", description: "Lunch", addTime: Date().addingTimeInterval(-10800)),
             ProteinEntry(proteinAmount: 15.0, foodName: "Greek Yogurt", description: "Snack", addTime: Date().addingTimeInterval(-18000)),
             ProteinEntry(proteinAmount: 21.0, foodName: "Scrambled Eggs (3)", description: "Breakfast", addTime: Date().addingTimeInterval(-36000)),

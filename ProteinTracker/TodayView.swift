@@ -13,72 +13,73 @@ struct TodayView: View {
     @State private var isShowingList = true
     
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            ScrollView {
-                VStack(spacing: 20) {
-                    
-                    HStack {
-                        Text("June 30, 2025")
-                        Spacer()
-                        
-                        // Temporary for Reset
-                        Button(action: {viewModel.resetToMockData()}) {
-                            Image(systemName: "arrow.counterclockwise.circle.fill")
-                                .foregroundColor(.gray)
-                                .font(.title2)
-                        }
-                    }
-                    
-                    VStack {
+        
+        NavigationStack {
+            ZStack(alignment: .bottomTrailing) {
+                ScrollView {
+                    VStack(spacing: 20) {
                         HStack {
-                            HStack {
-                                Text("Still Need")
+                            Text("June 30, 2025")
+                            Spacer()
+                            
+                            // Temporary for Reset
+                            Button(action: {viewModel.resetToMockData()}) {
+                                Image(systemName: "arrow.counterclockwise.circle.fill")
+                                    .foregroundColor(.gray)
                                     .font(.title2)
-                                    .bold()
-                                Spacer()
-                                Button(action: {print("Tapped")}) {
-                                    Text("Change Goal")
-                                        .font(.subheadline.weight(.bold))
-                                        .foregroundColor(.appPrimary)
-                                        .padding(.vertical, 8)
-                                        .padding(.horizontal, 12)
-                                        .background(Color.appBackground)
-                                        .cornerRadius(16)
-                                }
                             }
-                            .foregroundColor(.appSecondary)
                         }
                         
-                        HStack {
-                            Text("\(String(format: "%.1f" ,viewModel.stillNeedProtein)) Grams")
-                                .font(.system(size: 40, weight: .heavy))
-                                .bold()
-                                .foregroundColor(.appBackground)
-                            Spacer()
+                        VStack {
+                            HStack {
+                                HStack {
+                                    Text("Still Need")
+                                        .font(.title2)
+                                        .bold()
+                                    Spacer()
+                                    Button(action: {print("Tapped")}) {
+                                        Text("Change Goal")
+                                            .font(.subheadline.weight(.bold))
+                                            .foregroundColor(.appPrimary)
+                                            .padding(.vertical, 8)
+                                            .padding(.horizontal, 12)
+                                            .background(Color.appBackground)
+                                            .cornerRadius(16)
+                                    }
+                                }
+                                .foregroundColor(.appSecondary)
+                            }
+                            
+                            HStack {
+                                Text("\(String(format: "%.1f" ,viewModel.stillNeedProtein)) Grams")
+                                    .font(.system(size: 40, weight: .heavy))
+                                    .bold()
+                                    .foregroundColor(.appBackground)
+                                Spacer()
+                            }
+                            
+                            HStack {
+                                Text("❤️ Your Daily Protein Goal is \(String(format: "%.1f", viewModel.dailyGoal)) Grams")
+                                Image(systemName: "info.circle")
+                                Spacer()
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(.appBackground)
                         }
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 12)
+                            .fill( Color.appPrimary))
                         
-                        HStack {
-                            Text("❤️ Your Daily Protein Goal is \(String(format: "%.1f", viewModel.dailyGoal)) Grams")
-                            Image(systemName: "info.circle")
-                            Spacer()
-                        }
-                        .font(.subheadline)
-                        .foregroundColor(.appBackground)
-                    }
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 12)
-                    .fill( Color.appPrimary))
-                    
-                    VStack(spacing: 10) {
-                        HStack{
-                            Text("You've already taken in \(String(format: "%.1f", viewModel.totalProteinToday)) Grams until now.")
-                                .font(.subheadline)
-                                .bold()
-                            Image(systemName: "chevron.down")
-                                .rotationEffect(.degrees(isShowingList ? -90:0))
-                        }.onTapGesture {
-                            withAnimation { isShowingList.toggle() }
-                        }
+                        VStack(spacing: 10) {
+                            HStack{
+                                Text("You've already taken in \(String(format: "%.1f", viewModel.totalProteinToday)) Grams until now.")
+                                    .font(.subheadline)
+                                    .bold()
+                                Image(systemName: "chevron.down")
+                                    .rotationEffect(.degrees(isShowingList ? -90:0))
+                            }.onTapGesture {
+                                withAnimation { isShowingList.toggle() }
+                            }
                             
                             ZStack(alignment: .leading) {
                                 RoundedRectangle(cornerRadius: 3)
@@ -96,10 +97,12 @@ struct TodayView: View {
                                 if viewModel.totalProteinToday > 0 {
                                     List {
                                         ForEach(viewModel.entries) { entry in
-                                            HistoryEntryRowView(entry: entry)
-                                                .listRowBackground(Color.clear)
-                                                .listRowSeparator(.hidden)
-                                                .listRowInsets(EdgeInsets())
+                                            NavigationLink(destination: EntryDetailView(entryDetails: entry)) {
+                                                HistoryEntryRowView(entry: entry)
+                                                    .listRowBackground(Color.clear)
+                                                    .listRowSeparator(.hidden)
+                                                    .listRowInsets(EdgeInsets())
+                                            }
                                         }
                                         .onDelete { indexSet in
                                             viewModel.deleteEntry(at: indexSet)
@@ -134,19 +137,21 @@ struct TodayView: View {
                     .padding()
                 }
                 
-            // FAB: Floating Action Button
-            Button(
-                action: {isShowingAddSheet = true}
-            ) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(.appPrimary)
-                    .shadow(color: .primaryText.opacity(0.5), radius: 5, y: 3)
+                // FAB: Floating Action Button
+                Button(
+                    action: {isShowingAddSheet = true}
+                ) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 50))
+                        .foregroundColor(.appPrimary)
+                        .shadow(color: .primaryText.opacity(0.5), radius: 5, y: 3)
+                }
+                .padding()
             }
-            .padding()
-        }
-        .sheet(isPresented: $isShowingAddSheet) {
-            AddEntryModalView()
+            .sheet(isPresented: $isShowingAddSheet) {
+                AddEntryModalView()
+            }
+            .navigationTitle("Today")
         }
     }
 }
