@@ -47,9 +47,6 @@ struct FavoriteEntryRowView: View {
                 .fill(Color.white)
                 .shadow(color: .primaryText.opacity(0.1), radius: 2, x: 0, y: 2)
         )
-        
-
-        
     }
 }
 

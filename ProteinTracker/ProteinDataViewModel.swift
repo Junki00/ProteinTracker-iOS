@@ -44,11 +44,11 @@ class ProteinDataViewModel: ObservableObject {
             entries[index].foodName = foodName
             entries[index].description = description
         }
-        
-        for entry in self.entries {
-            if entry.id == uuid {
-
-            }
+    }
+    
+    func toggleFavoriteStatus (id: UUID) {
+        if let index = entries.firstIndex(where: {$0.id == id}) {
+            entries[index].isFavorite.toggle()
         }
     }
     
