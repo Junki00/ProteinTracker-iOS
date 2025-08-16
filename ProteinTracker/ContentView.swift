@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var viewModel = ProteinDataViewModel()
+    
     var body: some View {
         TabView {
             TodayView()

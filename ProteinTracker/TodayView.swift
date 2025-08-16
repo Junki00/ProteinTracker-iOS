@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TodayView: View {
     @EnvironmentObject var viewModel: ProteinDataViewModel
+    
     @State private var isShowingAddSheet = false
     @State private var isShowingList = true
     

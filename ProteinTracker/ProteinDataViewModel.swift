@@ -38,6 +38,20 @@ class ProteinDataViewModel: ObservableObject {
         entries.remove(atOffsets: offsets)
     }
     
+    func changeEntry (uuid: UUID, proteinAmount: Double, foodName: String, description: String) {
+        if let index = entries.firstIndex(where: {$0.id == uuid}) {
+            entries[index].proteinAmount = proteinAmount
+            entries[index].foodName = foodName
+            entries[index].description = description
+        }
+        
+        for entry in self.entries {
+            if entry.id == uuid {
+
+            }
+        }
+    }
+    
     // temprory for development
     func resetToMockData() {
         print("🔄 Resetting to mock data.")

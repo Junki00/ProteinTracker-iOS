@@ -12,8 +12,8 @@ enum EntryType {
 }
 
 struct AddEntryModalView: View {
-    @EnvironmentObject var viewModel: ProteinDataViewModel
     
+    @EnvironmentObject var viewModel: ProteinDataViewModel
     @Environment(\.dismiss) var dismiss
     
     @State private var proteinAmount: String = ""
@@ -26,7 +26,6 @@ struct AddEntryModalView: View {
     }
     
     var body: some View {
-        
         ScrollView {
             VStack {
                 HStack {
@@ -46,34 +45,26 @@ struct AddEntryModalView: View {
                                     let formatter = DateFormatter()
                                     formatter.dateFormat = "HH:mm"
                                     let timeString = formatter.string(from: Date())
-                                    
                                     finalFoodName = "Quick Add at \(timeString)"
                                 } else {
                                     finalFoodName = foodName
                                 }
                             
-                            
                             viewModel.addEntry(proteinAmount: amount, foodName: finalFoodName, description: description)
                         }
-
-                        
-                        
                         dismiss()
                     }) {
                         Text("Add")
                             .bold()
-                            .disabled(!isFormValid)
                             .foregroundColor(isFormValid ? .appPrimary : .gray)
                     }
-                    
+                    .disabled(!isFormValid)
                 }
                 .padding()
                 .font(.body)
                 .tint(Color.appPrimary)
-                
-                
-                
-                
+
+
                 VStack(spacing: 16) {
                     TextField ("Protein (grams)", text: $proteinAmount).keyboardType(.decimalPad)
                     
@@ -82,7 +73,6 @@ struct AddEntryModalView: View {
                     ZStack(alignment: .topLeading) {
                         TextEditor(text: $description)
 
-                        
                         if description.isEmpty {
                             Text("What's about this food...")
                                 .foregroundColor(.gray.opacity(0.7))
@@ -106,14 +96,12 @@ struct AddEntryModalView: View {
                 .pickerStyle(.segmented)
                 .padding()
                 
-                
                 switch selection {
                 case .planned:
                     PlanCard().padding()
                 case .favorites:
                     FavoriteCard().padding()
                 }
-
             }
         }
         .background(Color.secondaryBackground)
