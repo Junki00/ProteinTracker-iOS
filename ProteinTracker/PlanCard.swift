@@ -16,7 +16,7 @@ struct PlanCard: View {
             
             Text("You’ve already planned 232.5g\nStill need extra 8.0 grams.")
                 .font(.subheadline)
-            
+                        
             PlanEntryRowView()
             PlanEntryRowView()
             PlanEntryRowView()

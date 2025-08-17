@@ -17,7 +17,10 @@ struct EntryRowView: View {
     var type: EntryRowType
     
     var body: some View {
+        
         HStack(spacing: 16) {
+            
+            //Column Left
             ZStack {
                 Circle()
                     .fill(Color.appPrimary)
@@ -27,22 +30,37 @@ struct EntryRowView: View {
             }
             .frame(width: 60, height: 60)
             
-            VStack() {
+            //Column Middle
+            VStack(alignment: .leading) {
+                VStack(alignment:.leading) {
+                    Text(entry.foodName)
+                        .foregroundColor(.primaryText)
+                        .font(.headline)
+                        .lineLimit(1)
+                    Text(entry.description)
+                        .font(.subheadline)
+                        .bold()
+                        .lineLimit(1)
+                }
+                
+                Spacer()
+                
                 HStack {
-                    VStack(alignment:.leading) {
-                        Text(entry.foodName)
-                            .font(.headline)
-                            .foregroundColor(.primaryText)
-                            .lineLimit(1)
-                        Text(entry.description)
-                            .font(.subheadline)
-                            .foregroundColor(.secondaryText)
-                            .bold()
-                            .lineLimit(1)
-                    }
- 
-                    Spacer()
-                    
+                    Image(systemName: "alarm")
+                        .font(.subheadline)
+                    Image(systemName: "repeat")
+                        .font(.subheadline)
+                    Text(entry.addTime.formattedRelativeString())
+                        .font(.subheadline)
+                }
+            }
+            .frame(height: 80)
+            
+            Spacer()
+
+            //Column Right: Star Button and Check Button
+            VStack {
+                VStack {
                     Button(
                         action: {
                             viewModel.toggleFavoriteStatus(id: entry.id)
@@ -54,26 +72,25 @@ struct EntryRowView: View {
                     }
                 }
                 
-                Spacer().frame(height: 20)
+                Spacer()
                 
-                HStack {
-                    Image(systemName: "alarm")
-                        .font(.subheadline)
-                        .foregroundColor(.primaryText)
-                    Image(systemName: "repeat")
-                        .font(.subheadline)
-                        .foregroundColor(.primaryText)
-                    Text(entry.addTime.formattedRelativeString())
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                    Spacer()
-                    Image(systemName: (type == .history ? "checkmark.circle.fill": "checkmark.circle"))
-                        .font(.subheadline)
-                        .foregroundColor(type == .history ? .appPrimary : .secondaryText)
-                    Spacer().frame(width: 10) // magic number...well, let it go now.
+                VStack {
+                    Button(
+                        action: {
+                            viewModel.toggleTakenInStatus(id: entry.id)
+                            viewModel.togglePlanStatus(id: entry.id)
+                        }
+                    ) {
+                        Image(systemName: (type == .history ? "checkmark.circle.fill": "checkmark.circle"))
+                            .font(.subheadline)
+                            .foregroundColor(type == .history ? .appPrimary : .secondaryText)
+                    }
                 }
             }
+            .frame(height: 80)
+
         }
+        .foregroundColor(.secondaryText)
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
@@ -92,7 +109,7 @@ struct EntryRowView: View {
 #Preview {
     ZStack {
         Color.appSecondary.ignoresSafeArea()
-        EntryRowView(entry: ProteinDataViewModel().entries[0], type: .history)
+        EntryRowView(entry: ProteinDataViewModel().entries[0], type: .plan)
             .padding()
     }
 }

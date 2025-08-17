@@ -8,11 +8,15 @@
 import SwiftUI
 
 struct FavoritesView: View {
+    @EnvironmentObject var viewModel: ProteinDataViewModel
+    
+    
     var body: some View {
-        Text("Favorites Screen")
+        EntryCardView(type: .favorite)
     }
 }
 
 #Preview {
     FavoritesView()
+        .environmentObject(ProteinDataViewModel())
 }

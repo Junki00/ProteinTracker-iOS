@@ -95,44 +95,15 @@ struct TodayView: View {
                             
                             // View of Already Taken List
                             if isShowingList {
-                                if viewModel.totalProteinToday > 0 {
-                                    List {
-                                        ForEach(viewModel.entries) { entry in
-                                            NavigationLink(destination: EntryDetailView(entryDetails: entry)) {
-                                                HistoryEntryRowView(entry: entry)
-                                                    .listRowBackground(Color.clear)
-                                                    .listRowSeparator(.hidden)
-                                                    .listRowInsets(EdgeInsets())
-                                            }
-                                        }
-                                        .onDelete { indexSet in
-                                            viewModel.deleteEntry(at: indexSet)
-                                        }
-                                    }
-                                    .listStyle(.plain)
-                                    .frame(height: CGFloat(viewModel.entries.count*80))
-                                } else {
-                                    VStack(spacing: 16) {
-                                        Image(systemName:  "fork.knife.circle.fill")
-                                            .font(.system(size: 100))
-                                            .foregroundColor(.gray.opacity(0.6))
-                                        Text("No entries yet.")
-                                            .multilineTextAlignment(.center)
-                                            .foregroundColor(.appPrimary)
-                                            .font(.headline)
-                                        Text("Tap the '+' button to add\nyour first protein entry.")
-                                            .multilineTextAlignment(.center)
-                                            .foregroundColor(.secondaryText)
-                                            .font(.subheadline)
-                                    }
-                                    .padding(.horizontal)
-                                }
+                                EntryCardView(type: .history)
                             }
                         }
                         .padding(.vertical)
                         .background(RoundedRectangle(cornerRadius: 12).fill( Color.appSecondary))
                         
-                        PlanCard()
+                        
+                        EntryCardView(type: .plan)
+                        
                         Spacer().frame(height: 100)
                     }
                     .padding()

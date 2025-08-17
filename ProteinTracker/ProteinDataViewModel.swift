@@ -46,6 +46,18 @@ class ProteinDataViewModel: ObservableObject {
         }
     }
     
+    func togglePlanStatus (id: UUID) {
+        if let index = entries.firstIndex(where: {$0.id == id}) {
+            entries[index].isPlan.toggle()
+        }
+    }
+    
+    func toggleTakenInStatus (id: UUID) {
+        if let index = entries.firstIndex(where: {$0.id == id}) {
+            entries[index].isTakenIn.toggle()
+        }
+    }
+    
     func toggleFavoriteStatus (id: UUID) {
         if let index = entries.firstIndex(where: {$0.id == id}) {
             entries[index].isFavorite.toggle()

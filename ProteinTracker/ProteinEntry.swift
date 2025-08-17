@@ -15,6 +15,8 @@ struct ProteinEntry: Identifiable, Codable {
     var description: String
     var addTime: Date
     var isFavorite: Bool
+    var isPlan: Bool
+    var isTakenIn: Bool
     var emojiImage: String {
         if proteinAmount < 40 {
             "🥚"
@@ -32,5 +34,7 @@ struct ProteinEntry: Identifiable, Codable {
         self.description = description
         self.addTime = addTime
         self.isFavorite = false
+        self.isPlan = false
+        self.isTakenIn = true
     }
 }
