@@ -22,11 +22,13 @@ struct EntryCardView: View {
                 Text("❤️ Maybe they are not your favorites, but they work.")
                     .font(.subheadline)
                 
+                let favoriteEntries = viewModel.entries.filter{ $0.isFavorite == true }
+                
                 // favorite card 🌟TBD
-                if viewModel.totalProteinToday > 0 { // Need a counter for favorites of all the time
+                if !favoriteEntries.isEmpty {
                     List {
-                        ForEach(viewModel.entries) { entry in
-                            NavigationLink(destination: EntryDetailView(entryDetails: entry)) {
+                        ForEach(favoriteEntries) { entry in
+                            NavigationLink(destination: EntryDetailView(entry: entry)) {
                                 
                                 EntryRowView(entry: entry, type: type)
                                     .listRowBackground(Color.clear)
@@ -67,10 +69,14 @@ struct EntryCardView: View {
                     .font(.subheadline)
                 
                 // plan card 🌟TBD
-                if viewModel.totalProteinToday > 0 { // Need a counter for plans of a specific day
+                
+                
+                let todaysPlanEntries = viewModel.entries.filter{ Calendar.current.isDateInToday($0.timeStamp) && $0.isPlan == true }
+                                
+                if !todaysPlanEntries.isEmpty {
                     List {
-                        ForEach(viewModel.entries) { entry in
-                            NavigationLink(destination: EntryDetailView(entryDetails: entry)) {
+                        ForEach(todaysPlanEntries) { entry in
+                            NavigationLink(destination: EntryDetailView(entry: entry)) {
                                 
                                 EntryRowView(entry: entry, type: type)
                                     .listRowBackground(Color.clear)
@@ -103,11 +109,27 @@ struct EntryCardView: View {
      
             } else {
                 // history card
-                if viewModel.totalProteinToday > 0 {
+                let todaysHistoryEntries = viewModel.entries.filter{ Calendar.current.isDateInToday($0.timeStamp) && $0.isHistory == true }
+                
+                if !todaysHistoryEntries.isEmpty {
+                    // MARK: - TODO for next session
+                    /*
+                     
+                     The current ForEach iterates over a filtered copy of the array,
+                     which prevents creating a Binding to the original data source.
+                     
+                     NEXT STEP:
+                     1. Change ForEach to iterate over the binding of the original array:
+                        ForEach($viewModel.entries) { $entry in ... }
+                     
+                     2. Move the filtering logic (if isHistory && isToday) INSIDE the ForEach loop.
+                     
+                     3. Pass the binding `$entry` to the NavigationLink destination (EntryDetailView).
+                     
+                     */
                     List {
-                        ForEach(viewModel.entries) { entry in
-                            NavigationLink(destination: EntryDetailView(entryDetails: entry)) {
-                                
+                        ForEach(todaysHistoryEntries) { entry in
+                            NavigationLink(destination: EntryDetailView(entry: entry)) {
                                 EntryRowView(entry: entry, type: type)
                                     .listRowBackground(Color.appSecondary)
                                     .listRowSeparator(.hidden)
@@ -119,7 +141,6 @@ struct EntryCardView: View {
                         }
                     }
                     .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
                     .background(Color.appSecondary)
                     .frame(height: CGFloat(viewModel.entries.count*80))
                 } else {
@@ -148,6 +169,6 @@ struct EntryCardView: View {
 
 
 #Preview {
-    EntryCardView(type: .plan)
+    EntryCardView(type: .history)
         .environmentObject(ProteinDataViewModel())
 }

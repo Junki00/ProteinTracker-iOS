@@ -46,12 +46,18 @@ struct EntryRowView: View {
                 Spacer()
                 
                 HStack {
-                    Image(systemName: "alarm")
-                        .font(.subheadline)
-                    Image(systemName: "repeat")
-                        .font(.subheadline)
-                    Text(entry.addTime.formattedRelativeString())
-                        .font(.subheadline)
+                    if (type != .favorite) {
+                        Image(systemName: "alarm")
+                            .font(.subheadline)
+                        Image(systemName: "repeat")
+                            .font(.subheadline)
+                        Text(entry.timeStamp.formattedRelativeString())
+                            .font(.subheadline)
+                    } else {
+                        Text("Favorited Item")
+                            .font(.system(size: 12))
+                            .italic()
+                    }
                 }
             }
             .frame(height: 80)
@@ -81,14 +87,31 @@ struct EntryRowView: View {
                             viewModel.togglePlanStatus(id: entry.id)
                         }
                     ) {
-                        Image(systemName: (type == .history ? "checkmark.circle.fill": "checkmark.circle"))
-                            .font(.subheadline)
-                            .foregroundColor(type == .history ? .appPrimary : .secondaryText)
+                        if type == .history {
+                            Image(systemName: ("checkmark.circle"))
+                                .font(.subheadline)
+                                .foregroundColor(.appPrimary)
+                        } else {
+                            Button(
+                                action: {
+                                    if (type == .plan) {
+                                        viewModel.togglePlanStatus(id: entry.id)
+                                        viewModel.toggleTakenInStatus(id: entry.id)
+                                    } else if (type == .favorite) {
+                                        viewModel.addFavoriteToHistory(uuid: entry.id)
+                                    }
+                                }
+                            ) {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.subheadline)
+                                    .foregroundColor(.appPrimary)
+                            }
+                            .padding()
+                        }
                     }
                 }
             }
             .frame(height: 80)
-
         }
         .foregroundColor(.secondaryText)
         .padding()
@@ -109,7 +132,7 @@ struct EntryRowView: View {
 #Preview {
     ZStack {
         Color.appSecondary.ignoresSafeArea()
-        EntryRowView(entry: ProteinDataViewModel().entries[0], type: .plan)
+        EntryRowView(entry: ProteinDataViewModel().entries[0], type: .favorite)
             .padding()
     }
 }

@@ -50,7 +50,7 @@ struct AddEntryModalView: View {
                                     finalFoodName = foodName
                                 }
                             
-                            viewModel.addEntry(proteinAmount: amount, foodName: finalFoodName, description: description)
+                            viewModel.addHistoryEntry(proteinAmount: amount, foodName: finalFoodName, description: description)
                         }
                         dismiss()
                     }) {
@@ -98,9 +98,11 @@ struct AddEntryModalView: View {
                 
                 switch selection {
                 case .planned:
-                    PlanCard().padding()
+                    //PlanCard().padding()
+                    EntryCardView(type: .plan).padding()
                 case .favorites:
-                    FavoriteCard().padding()
+                    EntryCardView(type: .favorite).padding()
+                    //FavoriteCard().padding()
                 }
             }
         }

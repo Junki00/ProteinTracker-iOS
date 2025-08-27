@@ -29,9 +29,15 @@ class ProteinDataViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    func addEntry (proteinAmount: Double, foodName: String, description: String) {
-        let newEntry = ProteinEntry(proteinAmount: proteinAmount, foodName: foodName, description: description)
+    func addHistoryEntry (proteinAmount: Double, foodName: String, description: String, isFavorite: Bool = false) {
+        let newEntry = ProteinEntry(proteinAmount: proteinAmount, foodName: foodName, description: description, isFavorite: isFavorite, isPlan: false, isHistory: true)
         entries.append(newEntry)
+    }
+    
+    func addFavoriteToHistory (uuid: UUID) {
+        if let index = entries.firstIndex(where: {$0.id == uuid}) {
+            addHistoryEntry(proteinAmount: entries[index].proteinAmount, foodName: entries[index].foodName, description: entries[index].description, isFavorite: true)
+        }
     }
     
     func deleteEntry (at offsets: IndexSet) {
@@ -54,7 +60,7 @@ class ProteinDataViewModel: ObservableObject {
     
     func toggleTakenInStatus (id: UUID) {
         if let index = entries.firstIndex(where: {$0.id == id}) {
-            entries[index].isTakenIn.toggle()
+            entries[index].isPlan.toggle()
         }
     }
     
@@ -71,7 +77,7 @@ class ProteinDataViewModel: ObservableObject {
     }
     
     var totalProteinToday: Double {
-        let todaysEntries = entries.filter{ Calendar.current.isDateInToday($0.addTime) }
+        let todaysEntries = entries.filter{ Calendar.current.isDateInToday($0.timeStamp) && $0.isPlan == false }
         return todaysEntries.reduce(0) { sum, entry in
             sum + entry.proteinAmount
         }
@@ -122,12 +128,24 @@ class ProteinDataViewModel: ObservableObject {
     
     private func loadMockData() {
         self.entries = [
-            ProteinEntry(proteinAmount: 48.0, foodName: "Whey Protein Shake", description: "Post-workout", addTime: Date().addingTimeInterval(-1800)),
-            ProteinEntry(proteinAmount: 40.2, foodName: "Grilled Chicken Breast", description: "Lunch", addTime: Date().addingTimeInterval(-10800)),
-            ProteinEntry(proteinAmount: 15.0, foodName: "Greek Yogurt", description: "Snack", addTime: Date().addingTimeInterval(-18000)),
-            ProteinEntry(proteinAmount: 21.0, foodName: "Scrambled Eggs (3)", description: "Breakfast", addTime: Date().addingTimeInterval(-36000)),
-            ProteinEntry(proteinAmount: 30.8, foodName: "Salmon Fillet", description: "Dinner yesterday", addTime: Date().addingTimeInterval(-93600)),
-            ProteinEntry(proteinAmount: 12.5, foodName: "Cottage Cheese", description: "Late night snack yesterday", addTime: Date().addingTimeInterval(-82800))
+            // history
+            ProteinEntry(proteinAmount: 48.0, foodName: "Whey Protein Shake", description: "Post-workout", timeStamp: Date().addingTimeInterval(-1800), isFavorite: false, isPlan: false, isHistory: true),
+            ProteinEntry(proteinAmount: 40.2, foodName: "Grilled Chicken Breast", description: "Lunch", timeStamp: Date().addingTimeInterval(-10800), isFavorite: false, isPlan: false, isHistory: true),
+            ProteinEntry(proteinAmount: 15.0, foodName: "Greek Yogurt", description: "Snack", timeStamp: Date().addingTimeInterval(-18000), isFavorite: false, isPlan: false, isHistory: true),
+            ProteinEntry(proteinAmount: 21.0, foodName: "Scrambled Eggs (3)", description: "Breakfast", timeStamp: Date().addingTimeInterval(-36000), isFavorite: false, isPlan: false, isHistory: true),
+            ProteinEntry(proteinAmount: 30.8, foodName: "Salmon Fillet", description: "Dinner yesterday", timeStamp: Date().addingTimeInterval(-93600), isFavorite: false, isPlan: false, isHistory: true),
+            ProteinEntry(proteinAmount: 12.5, foodName: "Cottage Cheese", description: "Late night snack yesterday", timeStamp: Date().addingTimeInterval(-82800), isFavorite: false, isPlan: false, isHistory: true),
+            
+            // favorite
+            ProteinEntry(proteinAmount: 40.2, foodName: "Grilled Chicken Breast", description: "Lunch", timeStamp: Date().addingTimeInterval(-10800), isFavorite: true, isPlan: false, isHistory: false),
+            ProteinEntry(proteinAmount: 15.0, foodName: "Greek Yogurt", description: "Snack", timeStamp: Date().addingTimeInterval(-18000), isFavorite: true, isPlan: false, isHistory: false),
+            ProteinEntry(proteinAmount: 21.0, foodName: "Scrambled Eggs (3)", description: "Breakfast", timeStamp: Date().addingTimeInterval(-36000), isFavorite: true, isPlan: false, isHistory: false),
+            ProteinEntry(proteinAmount: 30.8, foodName: "Salmon Fillet", description: "Dinner yesterday", timeStamp: Date().addingTimeInterval(-93600), isFavorite: true, isPlan: false, isHistory: false),
+            ProteinEntry(proteinAmount: 12.5, foodName: "Cottage Cheese", description: "Late night snack yesterday", timeStamp: Date().addingTimeInterval(-82800), isFavorite: true, isPlan: false, isHistory: false),
+            
+            // plan
+            ProteinEntry(proteinAmount: 48.0, foodName: "Whey Protein Shake", description: "Post-workout", timeStamp: Date().addingTimeInterval(1800), isFavorite: false, isPlan: true, isHistory: false),
+            ProteinEntry(proteinAmount: 40.2, foodName: "Grilled Chicken Breast", description: "Lunch", timeStamp: Date().addingTimeInterval(10800), isFavorite: false, isPlan: true, isHistory: false),
         ]
     }
 }

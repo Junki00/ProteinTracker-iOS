@@ -14,7 +14,6 @@ struct TodayView: View {
     @State private var isShowingList = true
     
     var body: some View {
-        
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
                 ScrollView {
@@ -93,14 +92,13 @@ struct TodayView: View {
                             .frame(height: 4)
                             .padding(.horizontal)
                             
-                            // View of Already Taken List
+                            // View of History List
                             if isShowingList {
                                 EntryCardView(type: .history)
                             }
                         }
                         .padding(.vertical)
                         .background(RoundedRectangle(cornerRadius: 12).fill( Color.appSecondary))
-                        
                         
                         EntryCardView(type: .plan)
                         
