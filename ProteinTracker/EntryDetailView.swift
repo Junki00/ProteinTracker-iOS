@@ -9,16 +9,13 @@ import SwiftUI
 
 struct EntryDetailView: View {
     
-    // @Binding var entry: ProteinEntry
-    let entry: ProteinEntry
-    
+    @Binding var entry: ProteinEntry
     @EnvironmentObject var viewModel: ProteinDataViewModel
-    // @Environment(\.dismiss) var dismiss
     
     @State var proteinAmount: String = ""
     @State var foodName: String = ""
     @State var description: String = ""
-    @State var isEditValid: Bool = false
+    @State var isEditing: Bool = false
     
     var isDataValid: Bool {
         if let amount = Double(proteinAmount) {
@@ -33,14 +30,13 @@ struct EntryDetailView: View {
                 .font(.system(size: 200))
             VStack(alignment: .leading, spacing: 20) {
                 
-                if isEditValid {
-                    
+                if isEditing {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Protein Amount")
                             .font(.subheadline)
                             .foregroundColor(.primaryText)
                         TextField ("Protein (grams)", text: $proteinAmount).keyboardType(.decimalPad)
-                        
+                                                                        
                         Text("Food Name")
                             .font(.subheadline)
                             .foregroundColor(.primaryText)
@@ -51,7 +47,6 @@ struct EntryDetailView: View {
                             .foregroundColor(.primaryText)
                         ZStack(alignment: .topLeading) {
                             TextEditor(text: $description)
-
                             if description.isEmpty {
                                 Text("What's about this food...")
                                     .foregroundColor(.gray.opacity(0.7))
@@ -80,7 +75,7 @@ struct EntryDetailView: View {
                 
                 Spacer().frame(height: 20)
                 
-                // Do Later
+                // Do Later: Logic of add to Favorite
                 Button( action: {
                     
                     
@@ -103,15 +98,28 @@ struct EntryDetailView: View {
             .padding()
         }
         .toolbar {
+            if isEditing {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        withAnimation {
+                            isEditing = false
+                        }
+                    }
+                }
+            }
+            
             ToolbarItem(placement: .navigationBarTrailing) {
-                
-                
-                if isEditValid {
+                if isEditing {
                     Button("Done") {
-                        guard let amount = Double(proteinAmount) else { return }
-                        viewModel.changeEntry(uuid: entry.id, proteinAmount: amount, foodName: foodName, description: description)
+                        guard let amount = Double(proteinAmount), amount >= 0 else {return}
                         
-                        isEditValid = false
+                        entry.proteinAmount = amount
+                        entry.foodName = foodName
+                        entry.description = description
+                        
+                        withAnimation {
+                            isEditing = false
+                        }
                     }
                     .disabled(!isDataValid)
                 } else {
@@ -119,11 +127,14 @@ struct EntryDetailView: View {
                         proteinAmount = String(format: "%.1f", entry.proteinAmount)
                         foodName = entry.foodName
                         description = entry.description
-                        isEditValid = true
+                        withAnimation {
+                            isEditing = true
+                        }
                     }
                 }
             }
         }
+        .navigationBarBackButtonHidden(isEditing)
     }
         // Helper Methods
     @ViewBuilder
@@ -140,10 +151,57 @@ struct EntryDetailView: View {
         .font(.body)
     }
 }
-    
+
+
+//#Preview {
+//    let viewModel = ProteinDataViewModel()
+//
+//    struct PreviewWrapper: View {
+//        @State private var entry = viewModel.entries[5]
+//        
+//        var body: some View {
+//            NavigationView {
+//                EntryDetailView(entry: $entry)
+//                    .environmentObject(viewModel)
+//            }
+//        }
+//    }
+//    
+//    return PreviewWrapper()
+//}
+
+
+
 #Preview {
-    NavigationView {
-        EntryDetailView(entry: ProteinDataViewModel().entries[5])
-            .environmentObject(ProteinDataViewModel())
+    // 把 ViewModel 的创建放到 NavigationStack/View 之外
+    // 让它在 Preview 的顶层作用域
+    let viewModel = ProteinDataViewModel()
+
+    // 创建一个临时的容器 View 来持有 @State
+    struct PreviewWrapper: View {
+        // 1. 我们需要一个 entry 来初始化 @State
+        //    所以我们通过 init 把它传进来
+        private let initialEntry: ProteinEntry
+        
+        // 2. 用传入的 initialEntry 来初始化 @State
+        @State private var entry: ProteinEntry
+        
+        init(entry: ProteinEntry) {
+            self.initialEntry = entry
+            _entry = State(initialValue: entry)
+        }
+        
+        var body: some View {
+            NavigationView {
+                // 3. 把绑定 $entry 传给 EntryDetailView
+                EntryDetailView(entry: $entry)
+            }
+        }
     }
+    
+    // 4. 创建 PreviewWrapper 时，传入 viewModel 的第一个 entry
+    //    并把 viewModel 注入到它的环境中
+    return PreviewWrapper(entry: viewModel.entries[0])
+        .environmentObject(viewModel)
 }
+

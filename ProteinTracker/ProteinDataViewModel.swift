@@ -40,8 +40,31 @@ class ProteinDataViewModel: ObservableObject {
         }
     }
     
-    func deleteEntry (at offsets: IndexSet) {
-        entries.remove(atOffsets: offsets)
+    func completePlan(withID uuid: UUID) {
+        if let index = entries.firstIndex(where: { $0.id == uuid }) {
+            entries[index].isPlan = false
+            entries[index].isHistory = true
+            entries[index].timeStamp = Date()
+        }
+    }
+
+    func revertToPlan(withID uuid: UUID) {
+        if let index = entries.firstIndex(where: { $0.id == uuid }) {
+            entries[index].isPlan = true
+            entries[index].isHistory = false
+        }
+    }
+    
+//    func deleteEntry (at offsets: IndexSet) {
+//        entries.remove(atOffsets: offsets)
+//    }
+
+    func deleteEntries(_ entriesToDelete: [ProteinEntry]) {
+        let idsToDelete = Set(entriesToDelete.map { $0.id })
+
+        entries.removeAll { entry in
+            idsToDelete.contains(entry.id)
+        }
     }
     
     func changeEntry (uuid: UUID, proteinAmount: Double, foodName: String, description: String) {
@@ -76,22 +99,52 @@ class ProteinDataViewModel: ObservableObject {
         loadMockData()
     }
     
-    var totalProteinToday: Double {
-        let todaysEntries = entries.filter{ Calendar.current.isDateInToday($0.timeStamp) && $0.isPlan == false }
-        return todaysEntries.reduce(0) { sum, entry in
+    func getEntries(for type: EntryType, on date: Date? = nil) -> [ProteinEntry] {
+        let filteredByType: [ProteinEntry]
+        switch type {
+            case .history: filteredByType = self.entries.filter { $0.isHistory && !$0.isPlan }
+            case .favorite: filteredByType = self.entries.filter { $0.isFavorite }
+            case .plan: filteredByType = self.entries.filter { $0.isPlan && !$0.isHistory}
+        }
+        
+        let filteredByDate: [ProteinEntry]
+        if let date = date, type != .favorite {
+            filteredByDate = filteredByType.filter { Calendar.current.isDate($0.timeStamp, inSameDayAs: date) }
+        } else {
+            filteredByDate = filteredByType
+        }
+        
+        switch type {
+        case .history, .favorite:
+            return filteredByDate.sorted(by: { $0.timeStamp > $1.timeStamp })
+        case .plan:
+            return filteredByDate.sorted(by: { $0.timeStamp < $1.timeStamp })
+        }
+    }
+    
+    // MARK: - Calculation Methods
+    func totalProtein(on date: Date) -> Double {
+        let entriesForDay = getEntries(for: .history, on: date)
+        
+        let total = entriesForDay.reduce(0) { sum, entry in
             sum + entry.proteinAmount
         }
+        
+        return total
     }
-    
-    var stillNeedProtein: Double {
-        max(0, dailyGoal - totalProteinToday)
+
+    func stillNeededProtein(on date: Date) -> Double {
+        let totalToday = totalProtein(on: date)
+        let needed = dailyGoal - totalToday
+        return max(0, needed)
     }
-    
-    var progess: Double {
-        if dailyGoal == 0 {
-            return 0
-        }
-        return min(1, totalProteinToday / dailyGoal)
+
+    func progress(on date: Date) -> Double {
+        guard dailyGoal > 0 else { return 0 }
+        
+        let totalToday = totalProtein(on: date)
+        let calculatedProgress = totalToday / dailyGoal
+        return min(1, calculatedProgress)
     }
     
     func save() {

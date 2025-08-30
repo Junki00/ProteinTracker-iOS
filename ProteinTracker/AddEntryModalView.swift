@@ -7,19 +7,19 @@
 
 import SwiftUI
 
-enum EntryType {
-    case planned, favorites
-}
+
 
 struct AddEntryModalView: View {
     
     @EnvironmentObject var viewModel: ProteinDataViewModel
     @Environment(\.dismiss) var dismiss
     
+    var date: Date
+    
     @State private var proteinAmount: String = ""
     @State private var foodName: String = ""
     @State private var description: String = ""
-    @State private var selection: EntryType = .favorites
+    @State private var selection: EntryType = .favorite
     
     private var isFormValid: Bool {
         Double(proteinAmount) != nil
@@ -90,19 +90,19 @@ struct AddEntryModalView: View {
                 .tint(Color.appPrimary)
                 
                 Picker("Selection", selection: $selection) {
-                    Text("Planned").tag(EntryType.planned)
-                    Text("Favorites").tag(EntryType.favorites)
+                    Text("Planned").tag(EntryType.plan)
+                    Text("Favorites").tag(EntryType.favorite)
                 }
                 .pickerStyle(.segmented)
                 .padding()
                 
                 switch selection {
-                case .planned:
-                    //PlanCard().padding()
-                    EntryCardView(type: .plan).padding()
-                case .favorites:
-                    EntryCardView(type: .favorite).padding()
-                    //FavoriteCard().padding()
+                case .plan:
+                    EntryCardView(type: .plan, date: date).padding()
+                case .favorite:
+                    EntryCardView(type: .favorite, date: date).padding()
+                case .history:
+                    EntryCardView(type: .history, date: date).padding()
                 }
             }
         }
@@ -112,6 +112,6 @@ struct AddEntryModalView: View {
 }
 
 #Preview {
-    AddEntryModalView()
+    AddEntryModalView(date: Date())
         .environmentObject(ProteinDataViewModel())
 }

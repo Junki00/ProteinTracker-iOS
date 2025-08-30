@@ -10,7 +10,8 @@ import SwiftUI
 struct EntryCardView: View {
     @EnvironmentObject var viewModel: ProteinDataViewModel
     
-    var type: EntryRowType
+    var type: EntryType
+    var date: Date
 
     var body: some View {
         VStack {
@@ -22,27 +23,8 @@ struct EntryCardView: View {
                 Text("❤️ Maybe they are not your favorites, but they work.")
                     .font(.subheadline)
                 
-                let favoriteEntries = viewModel.entries.filter{ $0.isFavorite == true }
-                
-                // favorite card 🌟TBD
-                if !favoriteEntries.isEmpty {
-                    List {
-                        ForEach(favoriteEntries) { entry in
-                            NavigationLink(destination: EntryDetailView(entry: entry)) {
-                                
-                                EntryRowView(entry: entry, type: type)
-                                    .listRowBackground(Color.clear)
-                                    .listRowSeparator(.hidden)
-                                    .listRowInsets(EdgeInsets())
-                            }
-                        }
-                        .onDelete { indexSet in
-                            viewModel.deleteEntry(at: indexSet)
-                        }
-                    }
-                    .listStyle(.plain)
-                    .frame(height: CGFloat(viewModel.entries.count*80))
-                } else {
+                if viewModel.getEntries(for: .favorite).isEmpty {
+                    //Favorite View, Empty
                     VStack(spacing: 16) {
                         Image(systemName:  "fork.knife.circle.fill")
                             .font(.system(size: 100))
@@ -58,7 +40,31 @@ struct EntryCardView: View {
                     }
                     .padding(.horizontal)
                     .background(Color.appSecondary)
-
+                } else {
+                    //Favorite View, Not Empty
+                    let favoriteEntries = viewModel.getEntries(for: .favorite)
+                
+                    List {
+                        ForEach(favoriteEntries) { entry in
+                            NavigationLink {
+                                EntryDetailView(entry: binding(for: entry))
+                            } label: {
+                                EntryRowView(entry: entry, type: .favorite)
+                            }
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets())
+                        }
+                        .onDelete { indexSet in
+                            var entriesToDelete: [ProteinEntry] = []
+                            for index in indexSet {
+                                entriesToDelete.append(favoriteEntries[index])
+                            }
+                            viewModel.deleteEntries(entriesToDelete)
+                        }
+                    }
+                    .listStyle(.plain)
+                    .frame(height: CGFloat(favoriteEntries.count*80))
                 }
             } else if type == .plan {
                 Text("Today's Plan")
@@ -68,29 +74,8 @@ struct EntryCardView: View {
                 Text("🌞 Here is your plan of today.")
                     .font(.subheadline)
                 
-                // plan card 🌟TBD
-                
-                
-                let todaysPlanEntries = viewModel.entries.filter{ Calendar.current.isDateInToday($0.timeStamp) && $0.isPlan == true }
-                                
-                if !todaysPlanEntries.isEmpty {
-                    List {
-                        ForEach(todaysPlanEntries) { entry in
-                            NavigationLink(destination: EntryDetailView(entry: entry)) {
-                                
-                                EntryRowView(entry: entry, type: type)
-                                    .listRowBackground(Color.clear)
-                                    .listRowSeparator(.hidden)
-                                    .listRowInsets(EdgeInsets())
-                            }
-                        }
-                        .onDelete { indexSet in
-                            viewModel.deleteEntry(at: indexSet)
-                        }
-                    }
-                    .listStyle(.plain)
-                    .frame(height: CGFloat(viewModel.entries.count*80))
-                } else {
+                if viewModel.getEntries(for: .plan, on: date).isEmpty {
+                    //Plan View, Empty
                     VStack(spacing: 16) {
                         Image(systemName:  "fork.knife.circle.fill")
                             .font(.system(size: 100))
@@ -105,45 +90,35 @@ struct EntryCardView: View {
                             .font(.subheadline)
                     }
                     .padding(.horizontal)
-                }
-     
-            } else {
-                // history card
-                let todaysHistoryEntries = viewModel.entries.filter{ Calendar.current.isDateInToday($0.timeStamp) && $0.isHistory == true }
-                
-                if !todaysHistoryEntries.isEmpty {
-                    // MARK: - TODO for next session
-                    /*
-                     
-                     The current ForEach iterates over a filtered copy of the array,
-                     which prevents creating a Binding to the original data source.
-                     
-                     NEXT STEP:
-                     1. Change ForEach to iterate over the binding of the original array:
-                        ForEach($viewModel.entries) { $entry in ... }
-                     
-                     2. Move the filtering logic (if isHistory && isToday) INSIDE the ForEach loop.
-                     
-                     3. Pass the binding `$entry` to the NavigationLink destination (EntryDetailView).
-                     
-                     */
+                } else {
+                    //Plan View, Not Empty
+                    let somedayPlanEntries = viewModel.getEntries(for: .plan, on: date)
+                    
                     List {
-                        ForEach(todaysHistoryEntries) { entry in
-                            NavigationLink(destination: EntryDetailView(entry: entry)) {
-                                EntryRowView(entry: entry, type: type)
-                                    .listRowBackground(Color.appSecondary)
+                        ForEach(somedayPlanEntries) { entry in
+                            NavigationLink {
+                                EntryDetailView(entry: binding(for: entry))
+                            } label: {
+                                EntryRowView(entry: entry, type: .plan)
+                                    .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
                                     .listRowInsets(EdgeInsets())
                             }
                         }
                         .onDelete { indexSet in
-                            viewModel.deleteEntry(at: indexSet)
+                            var entriesToDelete: [ProteinEntry] = []
+                            for index in indexSet {
+                                entriesToDelete.append(somedayPlanEntries[index])
+                            }
+                            viewModel.deleteEntries(entriesToDelete)
                         }
                     }
                     .listStyle(.plain)
-                    .background(Color.appSecondary)
-                    .frame(height: CGFloat(viewModel.entries.count*80))
-                } else {
+                    .frame(height: CGFloat(somedayPlanEntries.count*80))
+                }
+            } else {
+                if viewModel.getEntries(for: .history, on: date).isEmpty {
+                    //History View, Empty
                     VStack(spacing: 16) {
                         Image(systemName:  "fork.knife.circle.fill")
                             .font(.system(size: 100))
@@ -159,16 +134,59 @@ struct EntryCardView: View {
                     }
                     .padding(.horizontal)
                     .background(Color.appSecondary)
+                } else {
+                    //History View, Not Empty
+                    let somedayHistoryEntries = viewModel.getEntries(for: .history, on: date)
+                    
+                    List {
+                        ForEach(somedayHistoryEntries) { entry in
+                            NavigationLink {
+                                EntryDetailView(entry: binding(for: entry))
+                            } label: {
+                                EntryRowView(entry: entry, type: .history)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
+                                    .listRowInsets(EdgeInsets())
+                            }
+                        }
+                        .onDelete { indexSet in
+                            var entriesToDelete: [ProteinEntry] = []
+                            for index in indexSet {
+                                entriesToDelete.append(somedayHistoryEntries[index])
+                            }
+                            viewModel.deleteEntries(entriesToDelete)
+                        }
+                    }
+                    .listStyle(.plain)
+                    .frame(height: CGFloat(somedayHistoryEntries.count*80))
                 }
             }
-
         }
         .background(type == .history ? Color.appSecondary: .white)
     }
+    
+    // --- Helper Method ---
+    private func binding(for entry: ProteinEntry) -> Binding<ProteinEntry> {
+        let getter = {
+            if let index = viewModel.entries.firstIndex(where: { $0.id == entry.id }) {
+                return viewModel.entries[index]
+            }
+            return entry
+        }
+        
+        let setter = { (newValue: ProteinEntry) in
+            if let index = viewModel.entries.firstIndex(where: { $0.id == entry.id }) {
+                viewModel.entries[index] = newValue
+            }
+        }
+        
+        return Binding(get: getter, set: setter)
+    }
+
+    
 }
 
-
 #Preview {
-    EntryCardView(type: .history)
+    EntryCardView(type: .history, date: Date())
         .environmentObject(ProteinDataViewModel())
 }

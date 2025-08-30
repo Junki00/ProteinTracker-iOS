@@ -12,7 +12,7 @@ struct FavoritesView: View {
     
     
     var body: some View {
-        EntryCardView(type: .favorite)
+        EntryCardView(type: .favorite, date: Date())
     }
 }
 

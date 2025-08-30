@@ -1,11 +1,15 @@
 //
-//  ProteinEntry.swift
+//  Models.swift
 //  ProteinTracker
 //
 //  Created by drx on 2025/07/25.
 //
 
 import Foundation
+
+enum EntryType {
+    case history, plan, favorite
+}
 
 struct ProteinEntry: Identifiable, Codable {
     let id: UUID

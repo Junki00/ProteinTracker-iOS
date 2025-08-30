@@ -13,13 +13,15 @@ struct TodayView: View {
     @State private var isShowingAddSheet = false
     @State private var isShowingList = true
     
+    let today = Date()
+
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
                 ScrollView {
                     VStack(spacing: 20) {
                         HStack {
-                            Text("June 30, 2025")
+                            Text(today.formattedRelativeString())
                             Spacer()
                             
                             // Temporary for Reset
@@ -51,7 +53,7 @@ struct TodayView: View {
                             }
                             
                             HStack {
-                                Text("\(String(format: "%.1f" ,viewModel.stillNeedProtein)) Grams")
+                                Text("\(String(format: "%.1f" ,viewModel.stillNeededProtein(on: today))) Grams")
                                     .font(.system(size: 40, weight: .heavy))
                                     .bold()
                                     .foregroundColor(.appBackground)
@@ -72,7 +74,7 @@ struct TodayView: View {
                         
                         VStack(spacing: 10) {
                             HStack{
-                                Text("You've already taken in \(String(format: "%.1f", viewModel.totalProteinToday)) Grams until now.")
+                                Text("You've already taken in \(String(format: "%.1f", viewModel.totalProtein(on: Date()))) Grams until now.")
                                     .font(.subheadline)
                                     .bold()
                                 Image(systemName: "chevron.down")
@@ -86,7 +88,7 @@ struct TodayView: View {
                                     .fill(Color.gray.opacity(0.3))
                                 GeometryReader { geometry in
                                     RoundedRectangle(cornerRadius: 3).fill(Color.blue)
-                                        .frame(width: geometry.size.width * viewModel.progess)
+                                        .frame(width: geometry.size.width * viewModel.progress(on: today))
                                 }
                             }
                             .frame(height: 4)
@@ -94,13 +96,13 @@ struct TodayView: View {
                             
                             // View of History List
                             if isShowingList {
-                                EntryCardView(type: .history)
+                                EntryCardView(type: .history, date: today)
                             }
                         }
                         .padding(.vertical)
                         .background(RoundedRectangle(cornerRadius: 12).fill( Color.appSecondary))
                         
-                        EntryCardView(type: .plan)
+                        EntryCardView(type: .plan, date: today)
                         
                         Spacer().frame(height: 100)
                     }
@@ -119,7 +121,7 @@ struct TodayView: View {
                 .padding()
             }
             .sheet(isPresented: $isShowingAddSheet) {
-                AddEntryModalView()
+                AddEntryModalView(date: today)
             }
             .navigationTitle("Today")
         }
