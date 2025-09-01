@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-enum EntryRowType {
-    case history, favorite, plan
-}
+//enum EntryRowType {
+//    case history, favorite, plan
+//}
 
 struct EntryRowView: View {
     @EnvironmentObject var viewModel: ProteinDataViewModel
     let entry: ProteinEntry
-    var type: EntryRowType
+    var type: EntryType
     
     var body: some View {
         
@@ -81,35 +81,36 @@ struct EntryRowView: View {
                 Spacer()
                 
                 VStack {
-                    Button(
-                        action: {
-                            viewModel.toggleTakenInStatus(id: entry.id)
-                            viewModel.togglePlanStatus(id: entry.id)
-                        }
-                    ) {
-                        if type == .history {
-                            Image(systemName: ("checkmark.circle"))
-                                .font(.subheadline)
-                                .foregroundColor(.appPrimary)
-                        } else {
-                            Button(
-                                action: {
-                                    if (type == .plan) {
-                                        viewModel.togglePlanStatus(id: entry.id)
-                                        viewModel.toggleTakenInStatus(id: entry.id)
-                                    } else if (type == .favorite) {
-                                        viewModel.addFavoriteToHistory(uuid: entry.id)
-                                    }
-                                }
-                            ) {
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.subheadline)
-                                    .foregroundColor(.appPrimary)
+                    if type == .history {
+                        Button(
+                            action: {
+                                viewModel.revertToPlan(withID: entry.id)
                             }
-                            .padding()
+                        ) {
+                            Image(systemName: ("checkmark.circle.fill"))
                         }
+                        .buttonStyle(.borderless)
+                    } else if type == .plan {
+                        Button(
+                            action: {
+                                viewModel.completePlan(withID: entry.id)
+                            }
+                        ) {
+                            Image(systemName: ("checkmark.circle"))
+                        }
+                        .buttonStyle(.borderless)
+                    } else {
+                        Button(
+                            action: {
+                                viewModel.addFavoriteToHistory(uuid: entry.id)
+                            }
+                        ) {
+                            Image(systemName: ("plus.circle.fill"))
+                        }
+                        .buttonStyle(.borderless)
                     }
                 }
+                .foregroundColor(.appPrimary)
             }
             .frame(height: 80)
         }
@@ -130,6 +131,18 @@ struct EntryRowView: View {
 }
 
 #Preview {
+    ZStack {
+        Color.appSecondary.ignoresSafeArea()
+        EntryRowView(entry: ProteinDataViewModel().entries[0], type: .plan)
+            .padding()
+    }
+    
+    ZStack {
+        Color.appSecondary.ignoresSafeArea()
+        EntryRowView(entry: ProteinDataViewModel().entries[0], type: .history)
+            .padding()
+    }
+    
     ZStack {
         Color.appSecondary.ignoresSafeArea()
         EntryRowView(entry: ProteinDataViewModel().entries[0], type: .favorite)

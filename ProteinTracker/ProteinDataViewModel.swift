@@ -54,10 +54,6 @@ class ProteinDataViewModel: ObservableObject {
             entries[index].isHistory = false
         }
     }
-    
-//    func deleteEntry (at offsets: IndexSet) {
-//        entries.remove(atOffsets: offsets)
-//    }
 
     func deleteEntries(_ entriesToDelete: [ProteinEntry]) {
         let idsToDelete = Set(entriesToDelete.map { $0.id })

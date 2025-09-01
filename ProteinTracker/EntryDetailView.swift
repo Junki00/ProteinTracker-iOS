@@ -75,24 +75,38 @@ struct EntryDetailView: View {
                 
                 Spacer().frame(height: 20)
                 
-                // Do Later: Logic of add to Favorite
-                Button( action: {
-                    
-                    
-                    print("Add Tapped")
-                    
-                    
-                    
-                } ) {
-                    HStack {
-                        Text("Add to / Delete from Favorites")
-                        Image(systemName: "star")
+                
+                HStack{
+                    //Transfer from Plan and History
+                    Button( action: {
+                        
+                        print("Add Tapped")
+                        
+                        
+                        
+                    } ) {
+                        HStack {
+                            Text(entry.isPlan ? "Take In Now": "Cancel Taken In")
+                        }
+                        .foregroundColor(.white)
+                        .font(.headline)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(RoundedRectangle(cornerRadius: 5).fill(Color.appPrimary))
                     }
-                    .foregroundColor(.white)
-                    .font(.headline)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(RoundedRectangle(cornerRadius: 5).fill(Color.appPrimary))
+                    
+                    
+                    // Add to or Delete from Favorites
+                    Button( action: {
+                        print("Add Tapped")
+                    } ) {
+                        HStack {
+                            Image(systemName: "star")
+                        }
+                        .foregroundColor(.appPrimary)
+                        .font(.system(size: 24))
+                        .padding()
+                    }
                 }
             }
             .padding()
@@ -135,6 +149,7 @@ struct EntryDetailView: View {
             }
         }
         .navigationBarBackButtonHidden(isEditing)
+        .background(entry.isHistory ? Color.appSecondary: nil)
     }
         // Helper Methods
     @ViewBuilder
@@ -153,37 +168,12 @@ struct EntryDetailView: View {
 }
 
 
-//#Preview {
-//    let viewModel = ProteinDataViewModel()
-//
-//    struct PreviewWrapper: View {
-//        @State private var entry = viewModel.entries[5]
-//        
-//        var body: some View {
-//            NavigationView {
-//                EntryDetailView(entry: $entry)
-//                    .environmentObject(viewModel)
-//            }
-//        }
-//    }
-//    
-//    return PreviewWrapper()
-//}
-
-
-
 #Preview {
-    // 把 ViewModel 的创建放到 NavigationStack/View 之外
-    // 让它在 Preview 的顶层作用域
     let viewModel = ProteinDataViewModel()
 
-    // 创建一个临时的容器 View 来持有 @State
     struct PreviewWrapper: View {
-        // 1. 我们需要一个 entry 来初始化 @State
-        //    所以我们通过 init 把它传进来
+
         private let initialEntry: ProteinEntry
-        
-        // 2. 用传入的 initialEntry 来初始化 @State
         @State private var entry: ProteinEntry
         
         init(entry: ProteinEntry) {
@@ -193,14 +183,11 @@ struct EntryDetailView: View {
         
         var body: some View {
             NavigationView {
-                // 3. 把绑定 $entry 传给 EntryDetailView
                 EntryDetailView(entry: $entry)
             }
         }
     }
     
-    // 4. 创建 PreviewWrapper 时，传入 viewModel 的第一个 entry
-    //    并把 viewModel 注入到它的环境中
     return PreviewWrapper(entry: viewModel.entries[0])
         .environmentObject(viewModel)
 }
