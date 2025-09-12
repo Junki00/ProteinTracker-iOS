@@ -7,14 +7,11 @@
 
 import SwiftUI
 
-//enum EntryRowType {
-//    case history, favorite, plan
-//}
-
 struct EntryRowView: View {
     @EnvironmentObject var viewModel: ProteinDataViewModel
     let entry: ProteinEntry
     var type: EntryType
+    let onAddToPlanTapped: (() -> Void)?
     
     var body: some View {
         
@@ -47,16 +44,27 @@ struct EntryRowView: View {
                 
                 HStack {
                     if (type != .favorite) {
-                        Image(systemName: "alarm")
-                            .font(.subheadline)
-                        Image(systemName: "repeat")
-                            .font(.subheadline)
-                        Text(entry.timeStamp.formattedRelativeString())
-                            .font(.subheadline)
+                        HStack {
+                            Image(systemName: "alarm")
+                            Image(systemName: "repeat")
+                            Text(entry.timeStamp.formattedRelativeString())
+                        }
+                        .font(.subheadline)
                     } else {
-                        Text("Favorited Item")
-                            .font(.system(size: 12))
-                            .italic()
+                        Button(
+                            action: {
+                                onAddToPlanTapped?()
+                            }
+                        ) {
+                            HStack {
+                                Image(systemName: "calendar.badge.plus")
+                                    .font(.subheadline)
+                                Text("Add to Plan")
+                                    .font(.caption)
+                            }
+                            .foregroundColor(.appPrimary)
+                        }
+                        .buttonStyle(.borderless)
                     }
                 }
             }
@@ -64,54 +72,51 @@ struct EntryRowView: View {
             
             Spacer()
 
-            //Column Right: Star Button and Check Button
+            //Column Right: Star Icon, Check Icon
             VStack {
-                VStack {
-                    Button(
-                        action: {
-                            viewModel.toggleFavoriteStatus(id: entry.id)
-                        }
-                    ) {
-                        Image(systemName: (entry.isFavorite ? "star.fill": "star"))
-                            .font(.system(size: 30))
-                            .foregroundColor(.appPrimary)
+                Button(
+                    action: {
+                        viewModel.toggleFavoriteStatus(id: entry.id)
                     }
+                ) {
+                    Image(systemName: (entry.isFavorite ? "star.fill": "star"))
+                        .font(.system(size: 30))
+                        .foregroundColor(.appPrimary)
                 }
+                .buttonStyle(.borderless)
                 
                 Spacer()
-                
-                VStack {
-                    if type == .history {
-                        Button(
-                            action: {
-                                viewModel.revertToPlan(withID: entry.id)
-                            }
-                        ) {
-                            Image(systemName: ("checkmark.circle.fill"))
+        
+                if type == .history {
+                    Button(
+                        action: {
+                            viewModel.revertToPlan(withID: entry.id)
                         }
-                        .buttonStyle(.borderless)
-                    } else if type == .plan {
-                        Button(
-                            action: {
-                                viewModel.completePlan(withID: entry.id)
-                            }
-                        ) {
-                            Image(systemName: ("checkmark.circle"))
-                        }
-                        .buttonStyle(.borderless)
-                    } else {
-                        Button(
-                            action: {
-                                viewModel.addFavoriteToHistory(uuid: entry.id)
-                            }
-                        ) {
-                            Image(systemName: ("plus.circle.fill"))
-                        }
-                        .buttonStyle(.borderless)
+                    ) {
+                        Image(systemName: ("checkmark.circle.fill"))
                     }
+                    .buttonStyle(.borderless)
+                } else if type == .plan {
+                    Button(
+                        action: {
+                            viewModel.completePlan(withID: entry.id)
+                        }
+                    ) {
+                        Image(systemName: ("checkmark.circle"))
+                    }
+                    .buttonStyle(.borderless)
+                } else {
+                    Button(
+                        action: {
+                            viewModel.addFavoriteToHistory(uuid: entry.id)
+                        }
+                    ) {
+                        Image(systemName: ("plus.circle.fill"))
+                    }
+                    .buttonStyle(.borderless)
                 }
-                .foregroundColor(.appPrimary)
             }
+            .foregroundColor(.appPrimary)
             .frame(height: 80)
         }
         .foregroundColor(.secondaryText)
@@ -128,24 +133,34 @@ struct EntryRowView: View {
             }
         }
     }
+    
+    init(entry: ProteinEntry, type: EntryType,onAddToPlanTapped: (()->Void)? = nil) {
+        self.entry = entry
+        self.type = type
+        self.onAddToPlanTapped = onAddToPlanTapped
+    }
 }
 
+
+
 #Preview {
+    
     ZStack {
-        Color.appSecondary.ignoresSafeArea()
         EntryRowView(entry: ProteinDataViewModel().entries[0], type: .plan)
+            .padding()
+    }
+    
+    
+    ZStack {
+        EntryRowView(entry: ProteinDataViewModel().entries[0], type: .favorite, onAddToPlanTapped: {
+            print("✅ Add to Plan button tapped in Preview.")
+        })
             .padding()
     }
     
     ZStack {
         Color.appSecondary.ignoresSafeArea()
         EntryRowView(entry: ProteinDataViewModel().entries[0], type: .history)
-            .padding()
-    }
-    
-    ZStack {
-        Color.appSecondary.ignoresSafeArea()
-        EntryRowView(entry: ProteinDataViewModel().entries[0], type: .favorite)
             .padding()
     }
 }

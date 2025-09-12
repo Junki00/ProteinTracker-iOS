@@ -26,22 +26,23 @@ struct AddEntryModalView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack {
-                HStack {
-                    Button (action: {
-                        dismiss()
-                    }) {
-                        Text("Cancel")
-                    }
-                    Spacer()
-                    Text("Fast Add or Pick Below")
-                        .font(.headline)
-                    Spacer()
-                    Button (action: {
-                        if let amount = Double(proteinAmount) {
-                            let finalFoodName: String
-                            if foodName.isEmpty {
+        NavigationStack {
+            ScrollView {
+                VStack {
+                    HStack {
+                        Button (action: {
+                            dismiss()
+                        }) {
+                            Text("Cancel")
+                        }
+                        Spacer()
+                        Text("Fast Add or Pick Below")
+                            .font(.headline)
+                        Spacer()
+                        Button (action: {
+                            if let amount = Double(proteinAmount) {
+                                let finalFoodName: String
+                                if foodName.isEmpty {
                                     let formatter = DateFormatter()
                                     formatter.dateFormat = "HH:mm"
                                     let timeString = formatter.string(from: Date())
@@ -49,65 +50,67 @@ struct AddEntryModalView: View {
                                 } else {
                                     finalFoodName = foodName
                                 }
+                                
+                                viewModel.addHistoryEntry(proteinAmount: amount, foodName: finalFoodName, description: description)
+                            }
+                            dismiss()
+                        }) {
+                            Text("Add")
+                                .bold()
+                                .foregroundColor(isFormValid ? .appPrimary : .gray)
+                        }
+                        .disabled(!isFormValid)
+                    }
+                    .padding()
+                    .font(.body)
+                    .tint(Color.appPrimary)
+                    
+                    
+                    VStack(spacing: 16) {
+                        TextField ("Protein (grams)", text: $proteinAmount).keyboardType(.decimalPad)
+                        
+                        TextField ("Name (e.g., Whey Protein Powder)", text: $foodName)
+                        
+                        ZStack(alignment: .topLeading) {
+                            TextEditor(text: $description)
                             
-                            viewModel.addHistoryEntry(proteinAmount: amount, foodName: finalFoodName, description: description)
+                            if description.isEmpty {
+                                Text("What's about this food...")
+                                    .foregroundColor(.gray.opacity(0.7))
+                                    .padding(.top, 8)
+                                    .padding(.leading, 5)
+                            }
                         }
-                        dismiss()
-                    }) {
-                        Text("Add")
-                            .bold()
-                            .foregroundColor(isFormValid ? .appPrimary : .gray)
+                        .frame(minHeight: 100)
+                        .padding(4)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.4), lineWidth: 1))
                     }
-                    .disabled(!isFormValid)
-                }
-                .padding()
-                .font(.body)
-                .tint(Color.appPrimary)
-
-
-                VStack(spacing: 16) {
-                    TextField ("Protein (grams)", text: $proteinAmount).keyboardType(.decimalPad)
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.horizontal)
+                    .tint(Color.appPrimary)
                     
-                    TextField ("Name (e.g., Whey Protein Powder)", text: $foodName)
-                    
-                    ZStack(alignment: .topLeading) {
-                        TextEditor(text: $description)
-
-                        if description.isEmpty {
-                            Text("What's about this food...")
-                                .foregroundColor(.gray.opacity(0.7))
-                                .padding(.top, 8)
-                                .padding(.leading, 5)
-                        }
+                    Picker("Selection", selection: $selection) {
+                        Text("Planned").tag(EntryType.plan)
+                        Text("Favorites").tag(EntryType.favorite)
                     }
-                    .frame(minHeight: 100)
-                    .padding(4)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.white))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.4), lineWidth: 1))
-                }
-                .textFieldStyle(.roundedBorder)
-                .padding(.horizontal)
-                .tint(Color.appPrimary)
-                
-                Picker("Selection", selection: $selection) {
-                    Text("Planned").tag(EntryType.plan)
-                    Text("Favorites").tag(EntryType.favorite)
-                }
-                .pickerStyle(.segmented)
-                .padding()
-                
-                switch selection {
-                case .plan:
-                    EntryCardView(type: .plan, date: date).padding()
-                case .favorite:
-                    EntryCardView(type: .favorite, date: date).padding()
-                case .history:
-                    EntryCardView(type: .history, date: date).padding()
+                    .pickerStyle(.segmented)
+                    .padding()
+                    
+                    switch selection {
+                    case .plan:
+                        EntryCardView(type: .plan, date: date).padding()
+                    case .favorite:
+                        EntryCardView(type: .favorite, date: date).padding()
+                    case .history:
+                        EntryCardView(type: .history, date: date).padding()
+                    }
+                    
                 }
             }
+            .background(Color.secondaryBackground)
+            .presentationDetents([.fraction(0.62), .large])
         }
-        .background(Color.secondaryBackground)
-        .presentationDetents([.fraction(0.62), .large])
     }
 }
 

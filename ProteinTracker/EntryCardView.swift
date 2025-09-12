@@ -10,6 +10,9 @@ import SwiftUI
 struct EntryCardView: View {
     @EnvironmentObject var viewModel: ProteinDataViewModel
     
+    @State private var isShowingAddToPlanSheet: Bool = false
+    
+    
     var type: EntryType
     var date: Date
 
@@ -44,16 +47,13 @@ struct EntryCardView: View {
                     //Favorite View, Not Empty
                     let favoriteEntries = viewModel.getEntries(for: .favorite)
                 
-                    List {
+                    VStack(spacing: 8) {
                         ForEach(favoriteEntries) { entry in
                             NavigationLink {
                                 EntryDetailView(entry: binding(for: entry))
                             } label: {
-                                EntryRowView(entry: entry, type: .favorite)
+                                EntryRowView(entry: entry, type: .favorite, onAddToPlanTapped: {self.isShowingAddToPlanSheet = true})
                             }
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets())
                         }
                         .onDelete { indexSet in
                             var entriesToDelete: [ProteinEntry] = []
@@ -63,8 +63,7 @@ struct EntryCardView: View {
                             viewModel.deleteEntries(entriesToDelete)
                         }
                     }
-                    .listStyle(.plain)
-                    .frame(height: CGFloat(favoriteEntries.count*80))
+                    .padding(.horizontal)
                 }
             } else if type == .plan {
                 Text("Today's Plan")
@@ -94,15 +93,12 @@ struct EntryCardView: View {
                     //Plan View, Not Empty
                     let somedayPlanEntries = viewModel.getEntries(for: .plan, on: date)
                     
-                    List {
+                    VStack(spacing: 8) {
                         ForEach(somedayPlanEntries) { entry in
                             NavigationLink {
                                 EntryDetailView(entry: binding(for: entry))
                             } label: {
                                 EntryRowView(entry: entry, type: .plan)
-                                    .listRowBackground(Color.clear)
-                                    .listRowSeparator(.hidden)
-                                    .listRowInsets(EdgeInsets())
                             }
                         }
                         .onDelete { indexSet in
@@ -113,8 +109,7 @@ struct EntryCardView: View {
                             viewModel.deleteEntries(entriesToDelete)
                         }
                     }
-                    .listStyle(.plain)
-                    .frame(height: CGFloat(somedayPlanEntries.count*80))
+                    .padding(.horizontal)
                 }
             } else {
                 if viewModel.getEntries(for: .history, on: date).isEmpty {
@@ -138,7 +133,7 @@ struct EntryCardView: View {
                     //History View, Not Empty
                     let somedayHistoryEntries = viewModel.getEntries(for: .history, on: date)
                     
-                    List {
+                    VStack(spacing: 8) {
                         ForEach(somedayHistoryEntries) { entry in
                             NavigationLink {
                                 EntryDetailView(entry: binding(for: entry))
@@ -157,12 +152,14 @@ struct EntryCardView: View {
                             viewModel.deleteEntries(entriesToDelete)
                         }
                     }
-                    .listStyle(.plain)
-                    .frame(height: CGFloat(somedayHistoryEntries.count*80))
+                    .padding(.horizontal)
                 }
             }
         }
         .background(type == .history ? Color.appSecondary: .white)
+        .sheet(isPresented: $isShowingAddToPlanSheet) {
+            Text("This is the Add to Plan Sheet")
+        }
     }
     
     // --- Helper Method ---
@@ -187,6 +184,6 @@ struct EntryCardView: View {
 }
 
 #Preview {
-    EntryCardView(type: .history, date: Date())
+    EntryCardView(type: .favorite, date: Date())
         .environmentObject(ProteinDataViewModel())
 }
