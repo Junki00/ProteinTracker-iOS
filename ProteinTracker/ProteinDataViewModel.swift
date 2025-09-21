@@ -29,16 +29,52 @@ class ProteinDataViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
+    
+    
+    
+    
+    //From Primitive Data to History Entry
     func addHistoryEntry (proteinAmount: Double, foodName: String, description: String, isFavorite: Bool = false) {
         let newEntry = ProteinEntry(proteinAmount: proteinAmount, foodName: foodName, description: description, isFavorite: isFavorite, isPlan: false, isHistory: true)
         entries.append(newEntry)
     }
     
-    func addFavoriteToHistory (uuid: UUID) {
-        if let index = entries.firstIndex(where: {$0.id == uuid}) {
-            addHistoryEntry(proteinAmount: entries[index].proteinAmount, foodName: entries[index].foodName, description: entries[index].description, isFavorite: true)
-        }
+    //From Favorite Entry to History Entry
+    func addHistoryEntry (from favoriteEntry: ProteinEntry) {
+        let newEntry = ProteinEntry(proteinAmount: favoriteEntry.proteinAmount, foodName: favoriteEntry.foodName, description: favoriteEntry.description, isFavorite: true, isPlan: false, isHistory: true)
+        entries.append(newEntry)
     }
+    
+    //From Primitive Data to Plan Entry
+    func addPlanEntry(proteinAmount: Double, foodName: String, description: String, date: Date, isFavorite: Bool = false) {
+        let newEntry = ProteinEntry(proteinAmount: proteinAmount, foodName: foodName, description: description, timeStamp: date, isFavorite: isFavorite, isPlan: true, isHistory: false)
+        entries.append(newEntry)
+    }
+    
+    //From Favorite Entry to Plan Entry
+    func addPlanEntry(from favoriteEntry: ProteinEntry, on date: Date) {
+        let newEntry = ProteinEntry(proteinAmount: favoriteEntry.proteinAmount, foodName: favoriteEntry.foodName, description: favoriteEntry.description, timeStamp: date, isFavorite: true, isPlan: true, isHistory: false)
+        entries.append(newEntry)
+    }
+    
+    //From Primitive Data to Favorite Entry
+    func addFavoriteEntry(proteinAmount: Double, foodName: String, description: String) {
+        let newEntry = ProteinEntry(proteinAmount: proteinAmount, foodName: foodName, description: description, isFavorite: true, isPlan: false, isHistory: false)
+        entries.append(newEntry)
+    }
+    
+    //From other entries to Favorite Entry, click Star Icon to add a copy.
+    func addFavoriteEntry(from otherEntry: ProteinEntry) {
+        let newEntry = ProteinEntry(proteinAmount: otherEntry.proteinAmount, foodName: otherEntry.foodName, description: otherEntry.description, isFavorite: true, isPlan: false, isHistory: false)
+        entries.append(newEntry)
+    }
+
+    
+    
+    
+    
+    
+    
     
     func completePlan(withID uuid: UUID) {
         if let index = entries.firstIndex(where: { $0.id == uuid }) {
@@ -61,6 +97,10 @@ class ProteinDataViewModel: ObservableObject {
         entries.removeAll { entry in
             idsToDelete.contains(entry.id)
         }
+    }
+    
+    func deleteEntry(withId id: UUID) {
+        entries.removeAll { $0.id == id }
     }
     
     func changeEntry (uuid: UUID, proteinAmount: Double, foodName: String, description: String) {
@@ -88,6 +128,8 @@ class ProteinDataViewModel: ObservableObject {
             entries[index].isFavorite.toggle()
         }
     }
+    
+    
     
     // temprory for development
     func resetToMockData() {

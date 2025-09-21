@@ -9,9 +9,7 @@ import SwiftUI
 
 struct EntryCardView: View {
     @EnvironmentObject var viewModel: ProteinDataViewModel
-    
-    @State private var isShowingAddToPlanSheet: Bool = false
-    
+    @State private var selectedEntry: ProteinEntry? = nil
     
     var type: EntryType
     var date: Date
@@ -52,15 +50,8 @@ struct EntryCardView: View {
                             NavigationLink {
                                 EntryDetailView(entry: binding(for: entry))
                             } label: {
-                                EntryRowView(entry: entry, type: .favorite, onAddToPlanTapped: {self.isShowingAddToPlanSheet = true})
+                                EntryRowView(entry: entry, type: .favorite, onAddToPlanTapped: {self.selectedEntry = entry})
                             }
-                        }
-                        .onDelete { indexSet in
-                            var entriesToDelete: [ProteinEntry] = []
-                            for index in indexSet {
-                                entriesToDelete.append(favoriteEntries[index])
-                            }
-                            viewModel.deleteEntries(entriesToDelete)
                         }
                     }
                     .padding(.horizontal)
@@ -101,13 +92,6 @@ struct EntryCardView: View {
                                 EntryRowView(entry: entry, type: .plan)
                             }
                         }
-                        .onDelete { indexSet in
-                            var entriesToDelete: [ProteinEntry] = []
-                            for index in indexSet {
-                                entriesToDelete.append(somedayPlanEntries[index])
-                            }
-                            viewModel.deleteEntries(entriesToDelete)
-                        }
                     }
                     .padding(.horizontal)
                 }
@@ -139,17 +123,7 @@ struct EntryCardView: View {
                                 EntryDetailView(entry: binding(for: entry))
                             } label: {
                                 EntryRowView(entry: entry, type: .history)
-                                    .listRowBackground(Color.clear)
-                                    .listRowSeparator(.hidden)
-                                    .listRowInsets(EdgeInsets())
                             }
-                        }
-                        .onDelete { indexSet in
-                            var entriesToDelete: [ProteinEntry] = []
-                            for index in indexSet {
-                                entriesToDelete.append(somedayHistoryEntries[index])
-                            }
-                            viewModel.deleteEntries(entriesToDelete)
                         }
                     }
                     .padding(.horizontal)
@@ -157,8 +131,8 @@ struct EntryCardView: View {
             }
         }
         .background(type == .history ? Color.appSecondary: .white)
-        .sheet(isPresented: $isShowingAddToPlanSheet) {
-            Text("This is the Add to Plan Sheet")
+        .sheet(item: $selectedEntry) { selectedEntry in
+            AddPlanView(entry: selectedEntry)
         }
     }
     
@@ -179,8 +153,6 @@ struct EntryCardView: View {
         
         return Binding(get: getter, set: setter)
     }
-
-    
 }
 
 #Preview {

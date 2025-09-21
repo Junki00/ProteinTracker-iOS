@@ -14,9 +14,7 @@ struct EntryRowView: View {
     let onAddToPlanTapped: (() -> Void)?
     
     var body: some View {
-        
         HStack(spacing: 16) {
-            
             //Column Left
             ZStack {
                 Circle()
@@ -39,9 +37,7 @@ struct EntryRowView: View {
                         .bold()
                         .lineLimit(1)
                 }
-                
                 Spacer()
-                
                 HStack {
                     if (type != .favorite) {
                         HStack {
@@ -69,9 +65,7 @@ struct EntryRowView: View {
                 }
             }
             .frame(height: 80)
-            
             Spacer()
-
             //Column Right: Star Icon, Check Icon
             VStack {
                 Button(
@@ -84,9 +78,7 @@ struct EntryRowView: View {
                         .foregroundColor(.appPrimary)
                 }
                 .buttonStyle(.borderless)
-                
                 Spacer()
-        
                 if type == .history {
                     Button(
                         action: {
@@ -108,7 +100,8 @@ struct EntryRowView: View {
                 } else {
                     Button(
                         action: {
-                            viewModel.addFavoriteToHistory(uuid: entry.id)
+
+                            viewModel.addHistoryEntry(from: entry)
                         }
                     ) {
                         Image(systemName: ("plus.circle.fill"))

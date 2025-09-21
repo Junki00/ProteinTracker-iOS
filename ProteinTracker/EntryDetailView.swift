@@ -11,6 +11,7 @@ struct EntryDetailView: View {
     
     @Binding var entry: ProteinEntry
     @EnvironmentObject var viewModel: ProteinDataViewModel
+    @Environment(\.dismiss) var dismiss
     
     @State var proteinAmount: String = ""
     @State var foodName: String = ""
@@ -147,6 +148,15 @@ struct EntryDetailView: View {
                     }
                 }
             }
+            
+            ToolbarItem(placement: .destructiveAction) {
+                Button(role: .destructive) {
+                    viewModel.deleteEntry(withId: entry.id)
+                    dismiss()
+                } label: {
+                    Image(systemName: "trash")
+                }
+            }
         }
         .navigationBarBackButtonHidden(isEditing)
         .background(entry.isHistory ? Color.appSecondary: nil)
@@ -188,7 +198,7 @@ struct EntryDetailView: View {
         }
     }
     
-    return PreviewWrapper(entry: viewModel.entries[0])
+    return PreviewWrapper(entry: viewModel.entries[2])
         .environmentObject(viewModel)
 }
 
