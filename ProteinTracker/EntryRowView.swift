@@ -70,7 +70,7 @@ struct EntryRowView: View {
             VStack {
                 Button(
                     action: {
-                        viewModel.toggleFavoriteStatus(id: entry.id)
+                        viewModel.addFavoriteEntry(from: entry)
                     }
                 ) {
                     Image(systemName: (entry.isFavorite ? "star.fill": "star"))

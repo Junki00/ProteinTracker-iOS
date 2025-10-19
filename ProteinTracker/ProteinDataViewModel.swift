@@ -8,6 +8,13 @@
 import Combine
 import Foundation
 
+enum FavoriteStatus {
+    case added
+    case alreadyExists
+}
+
+let favoriteStatusPublisher = PassthroughSubject<FavoriteStatus, Never>()
+
 class ProteinDataViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
@@ -28,8 +35,6 @@ class ProteinDataViewModel: ObservableObject {
             }
             .store(in: &cancellables)
     }
-    
-    
     
     
     
@@ -65,17 +70,22 @@ class ProteinDataViewModel: ObservableObject {
     
     //From other entries to Favorite Entry, click Star Icon to add a copy.
     func addFavoriteEntry(from otherEntry: ProteinEntry) {
-        let newEntry = ProteinEntry(proteinAmount: otherEntry.proteinAmount, foodName: otherEntry.foodName, description: otherEntry.description, isFavorite: true, isPlan: false, isHistory: false)
-        entries.append(newEntry)
+        let favoriteTemplateExists = entries.contains {
+            $0.foodName == otherEntry.foodName && $0.isFavorite && !$0.isPlan && !$0.isHistory
+        }
+        
+        if !favoriteTemplateExists {
+            addFavoriteEntry(proteinAmount: otherEntry.proteinAmount, foodName: otherEntry.foodName, description: otherEntry.description)
+        }
+                
+        for index in entries.indices {
+            if entries[index].foodName == otherEntry.foodName {
+                entries[index].isFavorite = true
+            }
+        }
     }
+    
 
-    
-    
-    
-    
-    
-    
-    
     func completePlan(withID uuid: UUID) {
         if let index = entries.firstIndex(where: { $0.id == uuid }) {
             entries[index].isPlan = false
@@ -123,13 +133,6 @@ class ProteinDataViewModel: ObservableObject {
         }
     }
     
-    func toggleFavoriteStatus (id: UUID) {
-        if let index = entries.firstIndex(where: {$0.id == id}) {
-            entries[index].isFavorite.toggle()
-        }
-    }
-    
-    
     
     // temprory for development
     func resetToMockData() {
@@ -141,7 +144,7 @@ class ProteinDataViewModel: ObservableObject {
         let filteredByType: [ProteinEntry]
         switch type {
             case .history: filteredByType = self.entries.filter { $0.isHistory && !$0.isPlan }
-            case .favorite: filteredByType = self.entries.filter { $0.isFavorite }
+            case .favorite: filteredByType = self.entries.filter { $0.isFavorite && !$0.isPlan && !$0.isHistory}
             case .plan: filteredByType = self.entries.filter { $0.isPlan && !$0.isHistory}
         }
         
