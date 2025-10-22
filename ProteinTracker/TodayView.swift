@@ -125,6 +125,21 @@ struct TodayView: View {
             }
             .navigationTitle("Today")
         }
+        .onAppear {
+            Task {
+                let service = NetworkService()
+                
+                do {
+                    let products = try await service.searchFoodInfo(searchName: "Chicken Breast")
+                    print("✅ Successfully fetched \(products.count) products.")
+                    for product in products.prefix(5) {
+                        print("- \(product.id) | Protein: \(product.proteinValue)g")
+                    }
+                } catch {
+                    print("❌ Failed to fetch products. Error: \(error)")
+                }
+            }
+        }
     }
 }
     
