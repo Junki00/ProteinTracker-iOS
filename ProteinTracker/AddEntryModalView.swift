@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-
-
 struct AddEntryModalView: View {
     
     @EnvironmentObject var viewModel: ProteinDataViewModel
@@ -16,13 +14,27 @@ struct AddEntryModalView: View {
     
     var date: Date
     
-    @State private var proteinAmount: String = ""
-    @State private var foodName: String = ""
-    @State private var description: String = ""
+    @State private var proteinAmount: String
+    @State private var foodName: String
+    @State private var description: String
     @State private var selection: EntryType = .favorite
     
     private var isFormValid: Bool {
         Double(proteinAmount) != nil
+    }
+    
+    init(product: Product? = nil, date: Date) {
+        if let product = product {
+            _proteinAmount = State(initialValue: "\(product.proteinValue)")
+            _foodName = State(initialValue: product.productName ?? "")
+            _description = State(initialValue: "")
+        } else {
+            _proteinAmount = State(initialValue: "")
+            _foodName = State(initialValue: "")
+            _description = State(initialValue: "")
+        }
+
+        self.date = date
     }
     
     var body: some View {

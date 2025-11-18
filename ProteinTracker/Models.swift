@@ -42,3 +42,9 @@ struct ProteinEntry: Identifiable, Codable {
         self.isHistory = isHistory
     }
 }
+
+struct DailyProteinData: Identifiable {
+    let date: Date
+    let totalProtein: Double
+    var id: Date { date }
+}

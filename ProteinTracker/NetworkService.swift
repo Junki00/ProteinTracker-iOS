@@ -11,6 +11,14 @@ enum NetworkError: Error {
     case invalidURL
     case invalidSearchTerm
     case requestFailed
+    var userFriendlyDescription: String {
+        switch self {
+        case .invalidURL, .invalidSearchTerm:
+            return "There was a problem constructing the search request."
+        case .requestFailed:
+            return "The request to the server failed. Please check your internet connection and try again."
+        }
+    }
 }
 
 struct SearchResponse: Codable {
@@ -57,7 +65,10 @@ struct NetworkService {
     
     func searchFoodInfo(searchName: String) async throws -> [Product] {
         let url = try createURL(for: searchName)
-        let (data, response) = try await URLSession.shared.data(from: url)
+        
+        let request = URLRequest(url: url, timeoutInterval: 5.0)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             throw NetworkError.requestFailed

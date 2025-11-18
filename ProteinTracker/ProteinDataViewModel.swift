@@ -188,6 +188,20 @@ class ProteinDataViewModel: ObservableObject {
         return min(1, calculatedProgress)
     }
     
+    func getWeeklyProteinData(on date: Date = Date()) -> [DailyProteinData] {
+        var weeklyProteinData:[DailyProteinData] = []
+        let calendar = Calendar.current
+        
+        for i in (0..<7).reversed() {
+            if let loopDate = calendar.date(byAdding: .day, value: -i, to: date) {
+                let dataPoint = DailyProteinData(date: loopDate, totalProtein: totalProtein(on: loopDate))
+                weeklyProteinData.append(dataPoint)
+            }
+        }
+        return weeklyProteinData
+    }
+    
+    
     func save() {
         do {
             let encoder = JSONEncoder()
@@ -221,15 +235,34 @@ class ProteinDataViewModel: ObservableObject {
     }
     
     private func loadMockData() {
-        self.entries = [
-            // history
-            ProteinEntry(proteinAmount: 48.0, foodName: "Whey Protein Shake", description: "Post-workout", timeStamp: Date().addingTimeInterval(-1800), isFavorite: false, isPlan: false, isHistory: true),
-            ProteinEntry(proteinAmount: 40.2, foodName: "Grilled Chicken Breast", description: "Lunch", timeStamp: Date().addingTimeInterval(-10800), isFavorite: false, isPlan: false, isHistory: true),
-            ProteinEntry(proteinAmount: 15.0, foodName: "Greek Yogurt", description: "Snack", timeStamp: Date().addingTimeInterval(-18000), isFavorite: false, isPlan: false, isHistory: true),
-            ProteinEntry(proteinAmount: 21.0, foodName: "Scrambled Eggs (3)", description: "Breakfast", timeStamp: Date().addingTimeInterval(-36000), isFavorite: false, isPlan: false, isHistory: true),
-            ProteinEntry(proteinAmount: 30.8, foodName: "Salmon Fillet", description: "Dinner yesterday", timeStamp: Date().addingTimeInterval(-93600), isFavorite: false, isPlan: false, isHistory: true),
-            ProteinEntry(proteinAmount: 12.5, foodName: "Cottage Cheese", description: "Late night snack yesterday", timeStamp: Date().addingTimeInterval(-82800), isFavorite: false, isPlan: false, isHistory: true),
+        let today = Date()
+        let calendar = Calendar.current
+        
+        // --- START: New History Mock Data ---
+        let newHistoryEntries: [ProteinEntry] = (0..<7).flatMap { dayIndex -> [ProteinEntry] in
+            guard let date = calendar.date(byAdding: .day, value: -dayIndex, to: today) else {
+                return []
+            }
             
+            // Let's create some variance in daily total
+            let dailyMultiplier = 0.8 + Double.random(in: 0...0.5) // Random multiplier between 0.8 and 1.3
+            let dailyGoal = 240.0
+            let targetTotal = dailyGoal * dailyMultiplier
+            
+            // Create 3-4 entries for each day to sum up to the targetTotal
+            let breakfastProtein = targetTotal * 0.25
+            let lunchProtein = targetTotal * 0.40
+            let dinnerProtein = targetTotal * 0.35
+            
+            return [
+                ProteinEntry(proteinAmount: breakfastProtein, foodName: "Eggs and Oats", description: "Breakfast", timeStamp: date, isFavorite: false, isPlan: false, isHistory: true),
+                ProteinEntry(proteinAmount: lunchProtein, foodName: "Chicken Salad", description: "Lunch", timeStamp: date, isFavorite: false, isPlan: false, isHistory: true),
+                ProteinEntry(proteinAmount: dinnerProtein, foodName: "Salmon and Veggies", description: "Dinner", timeStamp: date, isFavorite: false, isPlan: false, isHistory: true),
+            ]
+        }
+        // --- END: New History Mock Data ---
+        
+        self.entries = newHistoryEntries + [
             // favorite
             ProteinEntry(proteinAmount: 40.2, foodName: "Grilled Chicken Breast", description: "Lunch", timeStamp: Date().addingTimeInterval(-10800), isFavorite: true, isPlan: false, isHistory: false),
             ProteinEntry(proteinAmount: 15.0, foodName: "Greek Yogurt", description: "Snack", timeStamp: Date().addingTimeInterval(-18000), isFavorite: true, isPlan: false, isHistory: false),
