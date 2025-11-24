@@ -15,7 +15,6 @@ struct StatsView: View {
     var body: some View {
         let weeklyData = viewModel.getWeeklyProteinData()
 
-        
         NavigationStack {
             VStack(spacing:0) {
                 VStack {
@@ -34,29 +33,24 @@ struct StatsView: View {
                                         x: .value("Date", dataPoint.date, unit: .day),
                                         y: .value("protein", dataPoint.totalProtein)
                                     )
-                                    .foregroundStyle(Color.appPrimary)
-                                    .annotation(position: .top) {
-                                        Image(systemName: "arrow.down")
-                                            .font(.caption)
-                                            .foregroundColor(.appPrimary)
-                                    }
+                                    .foregroundStyle(Color.appPrimaryColor)
                                 } else {
                                     BarMark(
                                         x: .value("Date", dataPoint.date, unit: .day),
                                         y: .value("protein", dataPoint.totalProtein)
                                     )
-                                    .foregroundStyle(Color.appSecondary)
+                                    .foregroundStyle(Color.appAccentColor)
                                 }
                             }
                             
                             RuleMark(
                                 y: .value("Daily Goal", viewModel.dailyGoal)
                             )
-                            .foregroundStyle(Color.appPrimary)
+                            .foregroundStyle(Color.appPrimaryColor)
                             .annotation(position: .top, alignment: .leading) {
                                 Text("Goal")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.appSecondaryTextColor)
                             }
                         }
                         .chartYScale(domain: 0...(viewModel.dailyGoal * 4 / 3))
@@ -79,8 +73,9 @@ struct StatsView: View {
                                     )
                             }
                         }
-                        .frame(height: 300)
+                        .frame(height: 250)
                         .padding()
+                        .padding(.horizontal)
                     }
                     .navigationTitle("Weekly Statistics")
                             
@@ -89,19 +84,19 @@ struct StatsView: View {
                         HStack {
                             Text("Details for \(selectedDate, format: .dateTime.weekday(.wide).day().month(.wide))")
                                 .font(.caption)
-                                .foregroundColor(.primaryText)
+                                .foregroundColor(.appSecondaryTextColor)
                             Spacer()
                         }
                         .padding(.horizontal)
                         EntryCardView(type: .history, date: selectedDate)
                             .padding(.vertical)
-                            .background(RoundedRectangle(cornerRadius: 12).fill( Color.appSecondary))
+                            .background(RoundedRectangle(cornerRadius: 12).fill( Color.appAccentColor))
                             .padding()
                     } else {
                         VStack {
                             Text("Tap on a bar to see daily details.")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.appSecondaryTextColor)
                                 .padding()
                         }
                         .frame(minHeight: 200)

@@ -10,10 +10,14 @@ import SwiftUI
 struct FavoritesView: View {
     @EnvironmentObject var viewModel: ProteinDataViewModel
     
-    
     var body: some View {
         NavigationStack {
-            EntryCardView(type: .favorite, date: Date())
+            ScrollView {
+                EntryCardView(type: .favorite, date: Date())
+                    .padding()
+            }
+            .navigationTitle("Favorites")
+
         }
     }
 }

@@ -69,14 +69,13 @@ struct AddEntryModalView: View {
                         }) {
                             Text("Add")
                                 .bold()
-                                .foregroundColor(isFormValid ? .appPrimary : .gray)
+                                .foregroundColor(isFormValid ? .appPrimaryColor : .appSecondaryTextColor)
                         }
                         .disabled(!isFormValid)
                     }
                     .padding()
                     .font(.body)
-                    .tint(Color.appPrimary)
-                    
+                    .tint(Color.appPrimaryColor)
                     
                     VStack(spacing: 16) {
                         TextField ("Protein (grams)", text: $proteinAmount).keyboardType(.decimalPad)
@@ -88,19 +87,19 @@ struct AddEntryModalView: View {
                             
                             if description.isEmpty {
                                 Text("What's about this food...")
-                                    .foregroundColor(.gray.opacity(0.7))
+                                    .foregroundColor(.appSecondaryTextColor.opacity(0.4))
                                     .padding(.top, 8)
                                     .padding(.leading, 5)
                             }
                         }
                         .frame(minHeight: 100)
-                        .padding(4)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white))
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.4), lineWidth: 1))
+                        .padding(1)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.appBackgroundColor))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.appSecondaryTextColor.opacity(0.1), lineWidth: 1))
                     }
                     .textFieldStyle(.roundedBorder)
                     .padding(.horizontal)
-                    .tint(Color.appPrimary)
+                    .tint(Color.appPrimaryColor)
                     
                     Picker("Selection", selection: $selection) {
                         Text("Planned").tag(EntryType.plan)
@@ -120,7 +119,7 @@ struct AddEntryModalView: View {
                     
                 }
             }
-            .background(Color.secondaryBackground)
+            .background(Color.appCardBackgroundColor)
             .presentationDetents([.fraction(0.62), .large])
         }
     }

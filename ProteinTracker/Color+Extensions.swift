@@ -8,19 +8,50 @@
 import SwiftUI
 
 extension Color {
+    // Old
+//    // MARK: - Brand Colors
+//    static let appPrimaryColorTemp = Color(hex: "#EB5978")
+//    static let appSecondary = Color(hex: "#FBF0F2")
+//    static let appBackgroundColorTemp = Color(hex: "#FFFFFF")
+//    
+//    // MARK: - Text Colors
+//    static let primaryText = Color(hex: "#2C2C2E")
+//    static let secondaryText = Color(hex: "#676769")
+//    static let shallowText = Color(hex: "#FFFFFF")
+//    
+//    // MARK: - Apple Colors
+//    static let secondaryBackground = Color(hex: "#F2F2F7")
+
+    
+    // New
     // MARK: - Brand Colors
-    static let appPrimary = Color(hex: "#EB5978")
-    static let appSecondary = Color(hex: "#FBF0F2")
-    static let appBackground = Color(hex: "#FFFFFF")
+    /// 主色调：按钮、图标、进度条、重点文字
+    static let appPrimaryColor = Color("AppPrimaryColor")
+    
+    /// 辅助色：次要按钮背景、未选中图表柱子
+    static let appAccentColor = Color("AppAccent")
+    
+    // MARK: - Background Colors (Hierarchy)
+    /// Level 1: 最底层，用于 ScrollView/ZStack 底色
+    static let appBackgroundColor = Color("AppBackgroundColor")
+    
+    /// Level 2: 大容器，用于 "Still Need" 等大板块的背景
+    static let appCardBackgroundColor = Color("AppCardBackground")
+    
+    /// Level 3: 子项，用于 EntryRow 列表条目的背景
+    static let appSubCardBackgroundColor = Color("AppSubCardBackground")
     
     // MARK: - Text Colors
-    static let primaryText = Color(hex: "#2C2C2E")
-    static let secondaryText = Color(hex: "#676769")
-    static let shallowText = Color(hex: "#FFFFFF")
+    /// 一级文字：标题、正文
+    static let appPrimaryTextColor = Color("AppPrimaryText")
     
-    // MARK: - Apple Colors
-    static let secondaryBackground = Color(hex: "#F2F2F7")
-
+    /// 二级文字：副标题、说明、单位
+    static let appSecondaryTextColor = Color("AppSecondaryText")
+    
+    
+    
+    
+    
     
     
     init(hex: String) {

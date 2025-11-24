@@ -17,30 +17,18 @@ struct EntryCardView: View {
     var body: some View {
         VStack {
             if type == .favorite {
-                Text("Favorites")
-                    .font(.subheadline)
-                    .bold()
-                    .foregroundColor(.appPrimary)
-                Text("❤️ Maybe they are not your favorites, but they work.")
-                    .font(.subheadline)
-                
                 if viewModel.getEntries(for: .favorite).isEmpty {
                     //Favorite View, Empty
                     VStack(spacing: 16) {
-                        Image(systemName:  "fork.knife.circle.fill")
-                            .font(.system(size: 100))
-                            .foregroundColor(.gray.opacity(0.6))
-                        Text("No favorite yet.")
+                        Spacer()
+                        Text("No favorites yet.")
                             .multilineTextAlignment(.center)
-                            .foregroundColor(.appPrimary)
+                            .foregroundColor(.appPrimaryColor)
                             .font(.headline)
-                        Text("Tap the '+' button to add\nfavorite.")
-                            .multilineTextAlignment(.center)
-                            .foregroundColor(.secondaryText)
-                            .font(.subheadline)
+                        Spacer()
                     }
+                    .frame(maxWidth: .infinity, minHeight: 300)
                     .padding(.horizontal)
-                    .background(Color.appSecondary)
                 } else {
                     //Favorite View, Not Empty
                     let favoriteEntries = viewModel.getEntries(for: .favorite)
@@ -57,28 +45,17 @@ struct EntryCardView: View {
                     .padding(.horizontal)
                 }
             } else if type == .plan {
-                Text("Today's Plan")
-                    .font(.subheadline)
-                    .bold()
-                    .foregroundColor(.appPrimary)
-                Text("🌞 Here is your plan of today.")
-                    .font(.subheadline)
-                
                 if viewModel.getEntries(for: .plan, on: date).isEmpty {
                     //Plan View, Empty
                     VStack(spacing: 16) {
-                        Image(systemName:  "fork.knife.circle.fill")
-                            .font(.system(size: 100))
-                            .foregroundColor(.gray.opacity(0.6))
-                        Text("No plan yet.")
+                        Spacer()
+                        Text("No plans yet.")
                             .multilineTextAlignment(.center)
-                            .foregroundColor(.appPrimary)
+                            .foregroundColor(.appPrimaryColor)
                             .font(.headline)
-                        Text("Tap the '+' button to add\nplans.")
-                            .multilineTextAlignment(.center)
-                            .foregroundColor(.secondaryText)
-                            .font(.subheadline)
+                        Spacer()
                     }
+                    .frame(maxWidth: .infinity, minHeight: 300)
                     .padding(.horizontal)
                 } else {
                     //Plan View, Not Empty
@@ -99,20 +76,23 @@ struct EntryCardView: View {
                 if viewModel.getEntries(for: .history, on: date).isEmpty {
                     //History View, Empty
                     VStack(spacing: 16) {
+                        Spacer()
                         Image(systemName:  "fork.knife.circle.fill")
                             .font(.system(size: 100))
-                            .foregroundColor(.gray.opacity(0.6))
+                            .foregroundColor(.appSecondaryTextColor.opacity(0.6))
                         Text("No entries yet.")
                             .multilineTextAlignment(.center)
-                            .foregroundColor(.appPrimary)
+                            .foregroundColor(.appPrimaryColor)
                             .font(.headline)
-                        Text("Tap the '+' button to add\nyour first protein entry.")
+                        Text("Tap the '+' button at Today Tab to add\nyour first protein entry.")
                             .multilineTextAlignment(.center)
-                            .foregroundColor(.secondaryText)
+                            .foregroundColor(.appSecondaryTextColor)
                             .font(.subheadline)
+                        Spacer()
                     }
+                    .frame(maxWidth: .infinity, minHeight: 300)
                     .padding(.horizontal)
-                    .background(Color.appSecondary)
+                    .background(Color.appAccentColor)
                 } else {
                     //History View, Not Empty
                     let somedayHistoryEntries = viewModel.getEntries(for: .history, on: date)
@@ -130,7 +110,12 @@ struct EntryCardView: View {
                 }
             }
         }
-        .background(type == .history ? Color.appSecondary: .white)
+        .padding(.vertical)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(type == .history ? Color.appAccentColor : .appCardBackgroundColor)
+        )
+        .shadow(color: type == .history ? .clear : Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
         .sheet(item: $selectedEntry) { selectedEntry in
             AddPlanView(entry: selectedEntry)
         }

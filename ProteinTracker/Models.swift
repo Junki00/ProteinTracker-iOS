@@ -22,12 +22,12 @@ struct ProteinEntry: Identifiable, Codable {
     var isPlan: Bool
     var isHistory: Bool
     var emojiImage: String {
-        if proteinAmount < 40 {
-            "🥚"
-        } else if proteinAmount < 80 {
-            "🍗"
+        if proteinAmount < 20 {
+            "😳"
+        } else if proteinAmount < 50 {
+            "🥰"
         } else {
-            "🥩"
+            "🤩"
         }
     }
     
