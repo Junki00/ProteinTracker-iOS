@@ -2,24 +2,21 @@
 
 A native iOS application designed to help users track and visualize daily protein intake, built with **SwiftUI** and **MVVM** architecture.
 
-[![Behance](https://img.shields.io/badge/Behance-View%20Design%20System-0056FF?style=for-the-badge&logo=behance&logoColor=white)]([YOUR_BEHANCE_LINK_HERE])
+[![Behance](https://img.shields.io/badge/Behance-View%20Design%20System-0056FF?style=for-the-badge&logo=behance&logoColor=white)](https://www.behance.net/gallery/239365055/Protein-Tracer-A-Native-SwiftUI-Health-App)
 
 ### 📱 App Demo
 
-[![Watch the video](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=z1TyhV3Tkyc)
+[![Watch the video](https://img.youtube.com/vi/z1TyhV3Tkyc/maxresdefault.jpg)](https://www.youtube.com/watch?v=z1TyhV3Tkyc)
 
 > Click the image above to watch the full demo on YouTube.
 
 
-<p align="center">
-  <img src="[YOUR_GIF_LINK_HERE]" width="300" alt="App Demo">
-</p>
-
 ---
+
 
 ## 🚀 Key Features & Tech Highlights
 
-Based on modern iOS development standards (iOS 17+).
+Based on modern iOS development standards (SwiftUI, Async/Await).
 
 ### 📊 Interactive Visualization (SwiftUI Charts)
 - Implemented a custom dashboard using **SwiftUI Charts** and `ChartProxy`.
