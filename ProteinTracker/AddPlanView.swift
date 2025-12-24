@@ -68,6 +68,9 @@ struct AddPlanView: View {
                         
                         // 2. Big Action Button
                         Button(action: {
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.success)
+                            
                             viewModel.addPlanEntry(from: entry, on: selectedDate)
                             withAnimation {
                                 dismiss()

@@ -35,6 +35,7 @@ struct TodayView: View {
                 }
                 .sheet(isPresented: $isShowingAddSheet) {
                     AddEntryModalView(date: today)
+                        .presentationDetents([.fraction(0.56), .large])
                 }
                 .sheet(item: $selectedProduct) { product in
                     AddEntryModalView(product: product, date: today)
@@ -78,11 +79,14 @@ struct TodayView: View {
             fabButton
         }
         .navigationTitle("Today")
+        .background(Color.appBackgroundColor)
     }
     
     // MARK: - Search Result View
     private var searchResultView: some View {
-        Group {
+        ZStack {
+            Color.appBackgroundColor.ignoresSafeArea()
+            
             if isSearching {
                 ProgressView()
             } else {
@@ -92,25 +96,36 @@ struct TodayView: View {
                             self.selectedProduct = product
                         }
                 }
+                .scrollContentBackground(.hidden)
             }
         }
     }
+    
+    
     
     // MARK: - Subcomponents
     
     private var headerSection: some View {
         HStack {
             HStack {
-                Text("🌍 Good Day, Junn!")
+                Text("🌍 \(today, format: .dateTime.weekday().month().day()), Good Day, Junn!")
+                    .onTapGesture(count: 3) {
+                        let generator = UINotificationFeedbackGenerator()
+                        generator.notificationOccurred(.success)
+                        viewModel.resetToMockData()
+                    }
             }
             
             Spacer()
             
             // Temporary for Reset
-            Button(action: { viewModel.resetToMockData() }) {
-                Image(systemName: "arrow.counterclockwise.circle.fill")
-                    .foregroundColor(.appSecondaryTextColor)
-                    .font(.title2)
+            Button(action: {
+//                viewModel.resetToMockData()
+                print(" ")
+            }) {
+//                Image(systemName: "arrow.counterclockwise.circle.fill")
+//                    .foregroundColor(.appSecondaryTextColor)
+//                    .font(.title2)
             }
         }
     }
@@ -124,13 +139,13 @@ struct TodayView: View {
                         .bold()
                     Spacer()
                     Button(action: { print("Tapped") }) {
-                        Text("Change Goal")
-                            .font(.subheadline.weight(.bold))
-                            .foregroundColor(.appPrimaryColor)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
-                            .background(Color.appBackgroundColor)
-                            .cornerRadius(16)
+//                        Text("Goal: 240.0g")
+//                            .font(.subheadline.weight(.bold))
+//                            .foregroundColor(.appPrimaryColor)
+//                            .padding(.vertical, 8)
+//                            .padding(.horizontal, 12)
+//                            .background(Color.appBackgroundColor)
+//                            .cornerRadius(16)
                     }
                 }
                 .foregroundColor(.appAccentColor)
@@ -140,13 +155,16 @@ struct TodayView: View {
                 Text("\(String(format: "%.1f" ,viewModel.stillNeededProtein(on: today))) Grams")
                     .font(.system(size: 40, weight: .heavy))
                     .bold()
-                    .foregroundColor(.appBackground)
+                    .foregroundColor(.appBackgroundColor)
+                    .contentTransition(.numericText())
+                    .animation(.snappy, value: viewModel.stillNeededProtein(on: today))
+
                 Spacer()
             }
             
             HStack {
                 Text("Your Daily Protein Goal is \(String(format: "%.1f", viewModel.dailyGoal)) Grams")
-                Image(systemName: "info.circle")
+                // Image(systemName: "info.circle")
                 Spacer()
             }
             .font(.subheadline)
@@ -154,14 +172,14 @@ struct TodayView: View {
             .foregroundColor(.appBackgroundColor)
         }
         .padding()
-        .background(RoundedRectangle(cornerRadius: 12)
+        .background(RoundedRectangle(cornerRadius: 28)
             .fill(Color.appPrimaryColor))
     }
     
     private var historyCard: some View {
         VStack {
             HStack {
-                Text("Already taken in \(String(format: "%.1f", viewModel.totalProtein(on: Date()))) Grams until now.")
+                Text("Already taken in \(String(format: "%.1f", viewModel.totalProtein(on: Date()))) Grams.")
                     .font(.subheadline)
                     .bold()
                 Spacer()
@@ -172,6 +190,8 @@ struct TodayView: View {
             .padding(.top, 8)
             .padding(.horizontal)
             .onTapGesture {
+                let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.impactOccurred()
                 withAnimation { isShowingList.toggle() }
             }
             
@@ -181,6 +201,7 @@ struct TodayView: View {
                 GeometryReader { geometry in
                     RoundedRectangle(cornerRadius: 3).fill(Color.appPrimaryColor)
                         .frame(width: geometry.size.width * viewModel.progress(on: today))
+                        .animation(.spring(response: 0.5, dampingFraction: 0.9), value: viewModel.entries)
                 }
             }
             .frame(height: 4)
@@ -193,8 +214,8 @@ struct TodayView: View {
                 EntryCardView(type: .history, date: today)
             }
         }
-        .padding(.vertical)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.appAccentColor))
+        .padding(isShowingList ? .top : .vertical)
+        .background(RoundedRectangle(cornerRadius: 28).fill(Color.appAccentColor))
     }
     
     private var planCard: some View {
@@ -214,7 +235,12 @@ struct TodayView: View {
     
     private var fabButton: some View {
         Button(
-            action: { isShowingAddSheet = true }
+            action: {
+                let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.impactOccurred()
+                
+                isShowingAddSheet = true
+            }
         ) {
             Image(systemName: "plus.circle.fill")
                 .font(.system(size: 50))

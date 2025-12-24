@@ -76,6 +76,9 @@ struct EntryRowView: View {
                 } else {
                     Button(
                         action: {
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.success)
+                            
                             viewModel.addFavoriteEntry(from: entry)
                         }
                     ) {
@@ -90,6 +93,10 @@ struct EntryRowView: View {
                 if type == .history {
                     Button(
                         action: {
+                            
+                            let generator = UIImpactFeedbackGenerator(style: .medium)
+                            generator.impactOccurred()
+                            
                             viewModel.revertToPlan(withID: entry.id)
                         }
                     ) {
@@ -99,6 +106,10 @@ struct EntryRowView: View {
                 } else if type == .plan {
                     Button(
                         action: {
+                            
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.success)
+                            
                             viewModel.completePlan(withID: entry.id)
                         }
                     ) {
@@ -108,6 +119,10 @@ struct EntryRowView: View {
                 } else {
                     Button(
                         action: {
+                            
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.success)
+                            
                             viewModel.addHistoryEntry(from: entry)
                             
                             isAdded = true

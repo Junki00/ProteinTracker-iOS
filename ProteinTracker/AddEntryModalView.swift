@@ -63,6 +63,9 @@ struct AddEntryModalView: View {
                                     finalFoodName = foodName
                                 }
                                 
+                                let generator = UINotificationFeedbackGenerator()
+                                generator.notificationOccurred(.success)
+                                
                                 viewModel.addHistoryEntry(proteinAmount: amount, foodName: finalFoodName, description: description)
                             }
                             dismiss()
@@ -94,7 +97,7 @@ struct AddEntryModalView: View {
                         }
                         .frame(minHeight: 100)
                         .padding(1)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.appBackgroundColor))
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.appSubCardBackgroundColor))
                         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.appSecondaryTextColor.opacity(0.1), lineWidth: 1))
                     }
                     .textFieldStyle(.roundedBorder)
@@ -106,7 +109,8 @@ struct AddEntryModalView: View {
                         Text("Favorites").tag(EntryType.favorite)
                     }
                     .pickerStyle(.segmented)
-                    .padding()
+                    .padding(.horizontal)
+                    .padding(.top)
                     
                     switch selection {
                     case .plan:
@@ -120,7 +124,7 @@ struct AddEntryModalView: View {
                 }
             }
             .background(Color.appCardBackgroundColor)
-            .presentationDetents([.fraction(0.62), .large])
+            //.presentationDetents([.fraction(0.45), .large])
         }
     }
 }

@@ -66,7 +66,7 @@ struct NetworkService {
     func searchFoodInfo(searchName: String) async throws -> [Product] {
         let url = try createURL(for: searchName)
         
-        let request = URLRequest(url: url, timeoutInterval: 5.0)
+        let request = URLRequest(url: url, timeoutInterval: 60.0)
         
         let (data, response) = try await URLSession.shared.data(for: request)
         

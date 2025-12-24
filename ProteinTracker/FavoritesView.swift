@@ -17,7 +17,7 @@ struct FavoritesView: View {
                     .padding()
             }
             .navigationTitle("Favorites")
-
+            .background(Color.appBackgroundColor)
         }
     }
 }

@@ -11,7 +11,7 @@ enum EntryType {
     case history, plan, favorite
 }
 
-struct ProteinEntry: Identifiable, Codable {
+struct ProteinEntry: Identifiable, Codable, Equatable {
     let id: UUID
     
     var proteinAmount: Double

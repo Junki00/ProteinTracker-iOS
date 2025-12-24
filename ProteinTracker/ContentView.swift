@@ -30,7 +30,7 @@ struct ContentView: View {
                     Text("Stats")
                 }
         }
-        .tint(Color.appPrimary)
+        .tint(Color.appPrimaryColor)
         .environmentObject(viewModel)
     }
 }

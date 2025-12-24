@@ -33,7 +33,7 @@ struct EntryCardView: View {
                     //Favorite View, Not Empty
                     let favoriteEntries = viewModel.getEntries(for: .favorite)
                 
-                    VStack(spacing: 8) {
+                    VStack(spacing: 12) {
                         ForEach(favoriteEntries) { entry in
                             NavigationLink {
                                 EntryDetailView(entry: binding(for: entry))
@@ -61,7 +61,7 @@ struct EntryCardView: View {
                     //Plan View, Not Empty
                     let somedayPlanEntries = viewModel.getEntries(for: .plan, on: date)
                     
-                    VStack(spacing: 8) {
+                    VStack(spacing: 12) {
                         ForEach(somedayPlanEntries) { entry in
                             NavigationLink {
                                 EntryDetailView(entry: binding(for: entry))
@@ -97,7 +97,7 @@ struct EntryCardView: View {
                     //History View, Not Empty
                     let somedayHistoryEntries = viewModel.getEntries(for: .history, on: date)
                     
-                    VStack(spacing: 8) {
+                    VStack(spacing: 12) {
                         ForEach(somedayHistoryEntries) { entry in
                             NavigationLink {
                                 EntryDetailView(entry: binding(for: entry))
@@ -112,7 +112,7 @@ struct EntryCardView: View {
         }
         .padding(.vertical)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 28)
                 .fill(type == .history ? Color.appAccentColor : .appCardBackgroundColor)
         )
         .shadow(color: type == .history ? .clear : Color.black.opacity(0.08), radius: 8, x: 0, y: 4)

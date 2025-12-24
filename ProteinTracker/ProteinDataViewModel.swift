@@ -18,7 +18,7 @@ let favoriteStatusPublisher = PassthroughSubject<FavoriteStatus, Never>()
 class ProteinDataViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
-    @Published var dailyGoal:Double = 240.0
+    @Published var dailyGoal:Double = 260.0
     @Published var entries: [ProteinEntry] = []
     
     private var dataFileURL: URL {
@@ -234,34 +234,80 @@ class ProteinDataViewModel: ObservableObject {
         }
     }
     
+    
     private func loadMockData() {
         let today = Date()
         let calendar = Calendar.current
         
-        // --- START: New History Mock Data ---
+        // 1. 食物池 (数值调高，更像正餐)
+        let breakfastItems = [
+            ("Oatmeal & Double Whey", 45.0), ("4 Eggs Scrambled", 50.0), ("Mega Yogurt Parfait", 60.3), ("Protein Pancakes Stack", 40.0)
+        ]
+        let lunchItems = [
+            ("Double Chicken Salad", 60.0), ("Tuna Melt & Shake", 55.8), ("Beef Burrito XL", 55.0), ("Turkey Club w/ Extra Meat", 68.6)
+        ]
+        let dinnerItems = [
+            ("Salmon Fillet (200g)", 50.7), ("Steak (300g)", 65.0), ("Tofu & Beans Stew", 55.0), ("Cod & Lentils", 52.0)
+        ]
+        // 零食也变大一点
+        let snackItems = [
+            ("Large Protein Bar", 45.6), ("Casein Shake", 30.0), ("Cottage Cheese Tub", 55.0), ("Beef Jerky Pack", 42.7)
+        ]
+        
         let newHistoryEntries: [ProteinEntry] = (0..<7).flatMap { dayIndex -> [ProteinEntry] in
-            guard let date = calendar.date(byAdding: .day, value: -dayIndex, to: today) else {
-                return []
+            guard let date = calendar.date(byAdding: .day, value: -dayIndex, to: today) else { return [] }
+            
+            // 2. 目标控制 (保持不变)
+            let isHighDay = Double.random(in: 0...1) < 0.7
+            let targetTotal = isHighDay ? Double.random(in: 260...280) : Double.random(in: 240...260)
+            
+            var dailyEntries: [ProteinEntry] = []
+            var currentTotal = 0.0
+            
+            // 3. 基础三餐 (必吃)
+            let meals = [
+                (breakfastItems, "Breakfast"),
+                (lunchItems, "Lunch"),
+                (dinnerItems, "Dinner")
+            ]
+            
+            for (items, desc) in meals {
+                let item = items.randomElement()!
+                dailyEntries.append(ProteinEntry(proteinAmount: item.1, foodName: item.0, description: desc, timeStamp: date, isFavorite: false, isPlan: false, isHistory: true))
+                currentTotal += item.1
             }
             
-            // Let's create some variance in daily total
-            let dailyMultiplier = 0.8 + Double.random(in: 0...0.5) // Random multiplier between 0.8 and 1.3
-            let dailyGoal = 240.0
-            let targetTotal = dailyGoal * dailyMultiplier
+            // 4. 智能补齐 (Loop until target reached, but max 3 snacks)
+            var snackCount = 0
+            while currentTotal < targetTotal && snackCount < 3 { // 限制零食最多3个，总条目最多6个
+                let remaining = targetTotal - currentTotal
+                
+                if remaining < 15 {
+                    // 缺口小于15g，直接加到上一顿饭里，不创建新条目！这样数据更整洁。
+                    if var lastEntry = dailyEntries.last {
+                        lastEntry.proteinAmount += remaining
+                        // 稍微改下名字，显得真实
+                        if !lastEntry.foodName.contains("& Side") {
+                            lastEntry.foodName += " & Side"
+                        }
+                        dailyEntries[dailyEntries.count - 1] = lastEntry
+                    }
+                    currentTotal += remaining
+                } else {
+                    // 缺口较大，加一个零食
+                    let sItem = snackItems.randomElement()!
+                    // 确保不会加上去之后大大超标，取 remaining 和 sItem 的较小值，或者允许稍微超标一点点
+                    let amountToAdd = min(sItem.1, remaining + 5)
+                    dailyEntries.append(ProteinEntry(proteinAmount: amountToAdd, foodName: sItem.0, description: "Snack", timeStamp: date, isFavorite: false, isPlan: false, isHistory: true))
+                    currentTotal += amountToAdd
+                    snackCount += 1
+                }
+            }
             
-            // Create 3-4 entries for each day to sum up to the targetTotal
-            let breakfastProtein = targetTotal * 0.25
-            let lunchProtein = targetTotal * 0.40
-            let dinnerProtein = targetTotal * 0.35
-            
-            return [
-                ProteinEntry(proteinAmount: breakfastProtein, foodName: "Eggs and Oats", description: "Breakfast", timeStamp: date, isFavorite: false, isPlan: false, isHistory: true),
-                ProteinEntry(proteinAmount: lunchProtein, foodName: "Chicken Salad", description: "Lunch", timeStamp: date, isFavorite: false, isPlan: false, isHistory: true),
-                ProteinEntry(proteinAmount: dinnerProtein, foodName: "Salmon and Veggies", description: "Dinner", timeStamp: date, isFavorite: false, isPlan: false, isHistory: true),
-            ]
+            return dailyEntries
         }
-        // --- END: New History Mock Data ---
-        
+            // --- END: New History Mock Data ---
+            
         self.entries = newHistoryEntries + [
             // favorite
             ProteinEntry(proteinAmount: 40.2, foodName: "Grilled Chicken Breast", description: "Lunch", timeStamp: Date().addingTimeInterval(-10800), isFavorite: true, isPlan: false, isHistory: false),
