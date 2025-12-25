@@ -15,9 +15,7 @@ struct AddEntryModalView: View {
     var date: Date
     
     @State private var proteinAmount: String
-    @State private var foodName: String
-    @State private var description: String
-    @State private var selection: EntryType = .favorite
+    @FocusState private var isInputFocused: Bool
     
     private var isFormValid: Bool {
         Double(proteinAmount) != nil
@@ -26,12 +24,8 @@ struct AddEntryModalView: View {
     init(product: Product? = nil, date: Date) {
         if let product = product {
             _proteinAmount = State(initialValue: "\(product.proteinValue)")
-            _foodName = State(initialValue: product.productName ?? "")
-            _description = State(initialValue: "")
         } else {
             _proteinAmount = State(initialValue: "")
-            _foodName = State(initialValue: "")
-            _description = State(initialValue: "")
         }
 
         self.date = date
@@ -48,86 +42,100 @@ struct AddEntryModalView: View {
                             Text("Cancel")
                         }
                         Spacer()
-                        Text("Fast Add or Pick Below")
-                            .font(.headline)
-                        Spacer()
-                        Button (action: {
-                            if let amount = Double(proteinAmount) {
-                                let finalFoodName: String
-                                if foodName.isEmpty {
-                                    let formatter = DateFormatter()
-                                    formatter.dateFormat = "HH:mm"
-                                    let timeString = formatter.string(from: Date())
-                                    finalFoodName = "Quick Add at \(timeString)"
-                                } else {
-                                    finalFoodName = foodName
-                                }
-                                
-                                let generator = UINotificationFeedbackGenerator()
-                                generator.notificationOccurred(.success)
-                                
-                                viewModel.addHistoryEntry(proteinAmount: amount, foodName: finalFoodName, description: description)
-                            }
-                            dismiss()
-                        }) {
-                            Text("Add")
-                                .bold()
-                                .foregroundColor(isFormValid ? .appPrimaryColor : .appSecondaryTextColor)
-                        }
-                        .disabled(!isFormValid)
                     }
                     .padding()
                     .font(.body)
                     .tint(Color.appPrimaryColor)
                     
-                    VStack(spacing: 16) {
-                        TextField ("Protein (grams)", text: $proteinAmount).keyboardType(.decimalPad)
-                        
-                        TextField ("Name (e.g., Whey Protein Powder)", text: $foodName)
-                        
-                        ZStack(alignment: .topLeading) {
-                            TextEditor(text: $description)
-                            
-                            if description.isEmpty {
-                                Text("What's about this food...")
-                                    .foregroundColor(.appSecondaryTextColor.opacity(0.4))
-                                    .padding(.top, 8)
-                                    .padding(.leading, 5)
+                    Spacer()
+
+                    // --- Big Number Input ---
+                    TextField("0.0", text: $proteinAmount)
+                        .foregroundColor(.appPrimaryColor)
+                        .keyboardType(.decimalPad)
+                        .font(.system(size: 120, weight: .bold)) // Huge font
+                        .multilineTextAlignment(.center) // Center text
+                        .padding()
+                        .background(Color.clear) // No background box
+                        .tint(Color.appPrimaryColor) // Cursor color
+                        .focused($isInputFocused)
+                        .toolbar {
+                            ToolbarItemGroup(placement: .keyboard) {
+                                Button(action: {
+                                    saveEntry()
+                                    let generator = UINotificationFeedbackGenerator()
+                                    generator.notificationOccurred(.success)
+                                    proteinAmount = ""
+                                }) {
+                                    Text("Add Next")
+                                        .font(.headline)
+                                        .bold()
+                                        .foregroundColor(isFormValid ? .appPrimaryColor : .gray)
+                                            .bold()
+                                }
+                                .disabled(!isFormValid)
+                              
+                                Spacer()
+                                
+                                Button(action: {
+                                    saveEntry()
+                                    let generator = UINotificationFeedbackGenerator()
+                                    generator.notificationOccurred(.success)
+                                    dismiss()
+                                }) {
+                                    Text("Done")
+                                        .font(.headline)
+                                        .bold()
+                                        .foregroundColor(isFormValid ? .appPrimaryColor : .gray)
+                                            .bold()
+                                }
+                                .disabled(!isFormValid)
                             }
                         }
-                        .frame(minHeight: 100)
-                        .padding(1)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.appSubCardBackgroundColor))
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.appSecondaryTextColor.opacity(0.1), lineWidth: 1))
-                    }
-                    .textFieldStyle(.roundedBorder)
-                    .padding(.horizontal)
-                    .tint(Color.appPrimaryColor)
+                        .onChange(of: proteinAmount) {
+                            let generator = UIImpactFeedbackGenerator(style: .light)
+                            generator.impactOccurred(intensity: 0.5)
+                        }
                     
-                    Picker("Selection", selection: $selection) {
-                        Text("Planned").tag(EntryType.plan)
-                        Text("Favorites").tag(EntryType.favorite)
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-                    .padding(.top)
+                    Text("GRAMS")
+                        .bold()
+                        .font(.title)
+                        .foregroundColor(.appPrimaryTextColor)
                     
-                    switch selection {
-                    case .plan:
-                        EntryCardView(type: .plan, date: date).padding()
-                    case .favorite:
-                        EntryCardView(type: .favorite, date: date).padding()
-                    case .history:
-                        EntryCardView(type: .history, date: date).padding()
-                    }
-                    
+                    Spacer().frame(height: 40)
+
+                    Text("Default name will be used. Tap entry to edit details later.")
+                        .font(.body)
+                        .foregroundColor(.appSecondaryTextColor)
+                    Spacer()
                 }
             }
             .background(Color.appCardBackgroundColor)
-            //.presentationDetents([.fraction(0.45), .large])
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isInputFocused = true
+            }
+        }
+    }
+    
+
+    private func saveEntry() {
+        if let amount = Double(proteinAmount) {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "HH:mm"
+            let timeString = formatter.string(from: Date())
+            let finalFoodName = "Quick Add at \(timeString)"
+            
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+            
+            viewModel.addHistoryEntry(proteinAmount: amount, foodName: finalFoodName, description: "Click to edit description.")
         }
     }
 }
+
+
 
 #Preview {
     AddEntryModalView(date: Date())

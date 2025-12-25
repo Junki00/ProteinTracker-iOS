@@ -35,7 +35,7 @@ struct TodayView: View {
                 }
                 .sheet(isPresented: $isShowingAddSheet) {
                     AddEntryModalView(date: today)
-                        .presentationDetents([.fraction(0.56), .large])
+                        // .presentationDetents([.fraction(0.56), .large])
                 }
                 .sheet(item: $selectedProduct) { product in
                     AddEntryModalView(product: product, date: today)

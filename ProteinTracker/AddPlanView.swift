@@ -80,16 +80,8 @@ struct AddPlanView: View {
                                 Image(systemName: "plus.circle.fill")
                                 Text("Add to Plan")
                             }
-                            .font(.headline)
-                            .foregroundColor(.white) // Always white on primary button
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.appPrimaryColor)
-                                    .shadow(color: Color.appPrimaryColor.opacity(0.3), radius: 8, x: 0, y: 4)
-                            )
                         }
+                        .buttonStyle(.bigAction())
                         .padding(.horizontal)
                         .padding(.bottom, 10)
                     }
