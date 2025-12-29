@@ -43,8 +43,22 @@ struct ProteinEntry: Identifiable, Codable, Equatable {
     }
 }
 
+struct UserProfile: Codable {
+    var userName: String = "User"
+    var userWeight: Double = 120
+    var proteinMultiplier: Double = 2.2
+    var dailyGoal: Double {
+        userWeight * proteinMultiplier
+    }
+}
+
 struct DailyProteinData: Identifiable {
     let date: Date
     let totalProtein: Double
     var id: Date { date }
+}
+
+struct AppData: Codable {
+    let entries: [ProteinEntry]
+    let profile: UserProfile
 }

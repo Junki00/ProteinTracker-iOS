@@ -21,7 +21,7 @@ struct StatsView: View {
                 // Chart Section (Extracted View)
                 ProteinTrendChart(
                     weeklyData: weeklyData,
-                    dailyGoal: viewModel.dailyGoal,
+                    dailyGoal: viewModel.userProfile.dailyGoal,
                     selectedDate: $selectedDate
                 )
                 .navigationTitle("Weekly Statistics")

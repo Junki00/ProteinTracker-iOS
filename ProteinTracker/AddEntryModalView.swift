@@ -15,6 +15,7 @@ struct AddEntryModalView: View {
     var date: Date
     
     @State private var proteinAmount: String
+    @State private var foodName: String
     @FocusState private var isInputFocused: Bool
     
     private var isFormValid: Bool {
@@ -24,8 +25,10 @@ struct AddEntryModalView: View {
     init(product: Product? = nil, date: Date) {
         if let product = product {
             _proteinAmount = State(initialValue: "\(product.proteinValue)")
+            _foodName = State(initialValue: product.productName ?? "")
         } else {
             _proteinAmount = State(initialValue: "")
+            _foodName = State(initialValue: "")
         }
 
         self.date = date
@@ -48,6 +51,12 @@ struct AddEntryModalView: View {
                     .tint(Color.appPrimaryColor)
                     
                     Spacer()
+                    
+                    if !foodName.isEmpty {
+                        Text("\(foodName)")
+                            .font(.headline)
+                            .foregroundColor(.appPrimaryColor)
+                    }
 
                     // --- Big Number Input ---
                     TextField("0.0", text: $proteinAmount)
@@ -97,7 +106,7 @@ struct AddEntryModalView: View {
                             generator.impactOccurred(intensity: 0.5)
                         }
                     
-                    Text("GRAMS")
+                    Text("Grams")
                         .bold()
                         .font(.title)
                         .foregroundColor(.appPrimaryTextColor)
@@ -124,13 +133,21 @@ struct AddEntryModalView: View {
         if let amount = Double(proteinAmount) {
             let formatter = DateFormatter()
             formatter.dateFormat = "HH:mm"
-            let timeString = formatter.string(from: Date())
-            let finalFoodName = "Quick Add at \(timeString)"
+            //let timeString = formatter.string(from: Date())
+            
+            let finalName: String
+            if !foodName.isEmpty {
+                finalName = foodName
+            } else {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "HH:mm"
+                finalName = "Quick Add at \(formatter.string(from: Date()))"
+            }
+            
+            viewModel.addHistoryEntry(proteinAmount: amount, foodName: finalName, description: "Click to edit description.")
             
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
-            
-            viewModel.addHistoryEntry(proteinAmount: amount, foodName: finalFoodName, description: "Click to edit description.")
         }
     }
 }

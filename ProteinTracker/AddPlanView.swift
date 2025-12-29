@@ -87,7 +87,6 @@ struct AddPlanView: View {
                     }
                     .padding(.top, 20)
                 }
-                .navigationTitle("Add to Plan")
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button("Cancel") {

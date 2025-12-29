@@ -79,6 +79,15 @@ struct TodayView: View {
             fabButton
         }
         .navigationTitle("Today")
+        .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: UserProfileView()) {
+                        Image(systemName: "person.crop.circle")
+                            .font(.title3)
+                            .foregroundColor(.appSecondaryTextColor)
+                    }
+            }
+        }
         .background(Color.appBackgroundColor)
     }
     
@@ -108,7 +117,7 @@ struct TodayView: View {
     private var headerSection: some View {
         HStack {
             HStack {
-                Text("🌍 \(today, format: .dateTime.weekday().month().day()), Good Day, Junn!")
+                Text("🌍 \(today, format: .dateTime.weekday().month().day()), Good Day, \(viewModel.userProfile.userName)!")
                     .onTapGesture(count: 3) {
                         let generator = UINotificationFeedbackGenerator()
                         generator.notificationOccurred(.success)
@@ -118,38 +127,19 @@ struct TodayView: View {
             
             Spacer()
             
-            // Temporary for Reset
-            Button(action: {
-//                viewModel.resetToMockData()
-                print(" ")
-            }) {
-//                Image(systemName: "arrow.counterclockwise.circle.fill")
-//                    .foregroundColor(.appSecondaryTextColor)
-//                    .font(.title2)
-            }
+
         }
     }
     
     private var stillNeedCard: some View {
         VStack {
             HStack {
-                HStack {
-                    Text("Still Need")
-                        .font(.title)
-                        .bold()
-                    Spacer()
-                    Button(action: { print("Tapped") }) {
-//                        Text("Goal: 240.0g")
-//                            .font(.subheadline.weight(.bold))
-//                            .foregroundColor(.appPrimaryColor)
-//                            .padding(.vertical, 8)
-//                            .padding(.horizontal, 12)
-//                            .background(Color.appBackgroundColor)
-//                            .cornerRadius(16)
-                    }
-                }
-                .foregroundColor(.appAccentColor)
+                Text("Still Need")
+                    .font(.title)
+                    .bold()
+                Spacer()
             }
+            .foregroundColor(.appAccentColor)
             
             HStack {
                 Text("\(String(format: "%.1f" ,viewModel.stillNeededProtein(on: today))) Grams")
@@ -163,8 +153,7 @@ struct TodayView: View {
             }
             
             HStack {
-                Text("Your Daily Protein Goal is \(String(format: "%.1f", viewModel.dailyGoal)) Grams")
-                // Image(systemName: "info.circle")
+                Text("Your Daily Protein Goal is \(String(format: "%.1f", viewModel.userProfile.dailyGoal)) Grams")
                 Spacer()
             }
             .font(.subheadline)
@@ -225,8 +214,6 @@ struct TodayView: View {
                     .font(.subheadline)
                     .bold()
                     .foregroundColor(.appPrimaryColor)
-                Text("🌞 Here is your plan of today.")
-                    .font(.subheadline)
             }
             
             EntryCardView(type: .plan, date: today)
@@ -245,7 +232,7 @@ struct TodayView: View {
             Image(systemName: "plus.circle.fill")
                 .font(.system(size: 50))
                 .foregroundColor(.appPrimaryColor)
-                .shadow(color: .appPrimaryTextColor.opacity(0.5), radius: 5, y: 3)
+                .shadow(color: .appPrimaryTextColor.opacity(0.3), radius: 5, y: 3)
         }
         .padding()
     }

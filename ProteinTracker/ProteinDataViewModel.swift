@@ -18,8 +18,8 @@ let favoriteStatusPublisher = PassthroughSubject<FavoriteStatus, Never>()
 class ProteinDataViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
-    @Published var dailyGoal:Double = 260.0
     @Published var entries: [ProteinEntry] = []
+    @Published var userProfile: UserProfile = UserProfile()
     
     private var dataFileURL: URL {
         let docDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -29,6 +29,12 @@ class ProteinDataViewModel: ObservableObject {
     init() {
         load()
         $entries
+            .debounce(for: .seconds(0.8), scheduler: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.save()
+            }
+            .store(in: &cancellables)
+        $userProfile
             .debounce(for: .seconds(0.8), scheduler: RunLoop.main)
             .sink { [weak self] _ in
                 self?.save()
@@ -176,15 +182,15 @@ class ProteinDataViewModel: ObservableObject {
 
     func stillNeededProtein(on date: Date) -> Double {
         let totalToday = totalProtein(on: date)
-        let needed = dailyGoal - totalToday
+        let needed = userProfile.dailyGoal - totalToday
         return max(0, needed)
     }
 
     func progress(on date: Date) -> Double {
-        guard dailyGoal > 0 else { return 0 }
+        guard userProfile.dailyGoal > 0 else { return 0 }
         
         let totalToday = totalProtein(on: date)
-        let calculatedProgress = totalToday / dailyGoal
+        let calculatedProgress = totalToday / userProfile.dailyGoal
         return min(1, calculatedProgress)
     }
     
@@ -201,14 +207,19 @@ class ProteinDataViewModel: ObservableObject {
         return weeklyProteinData
     }
     
+
+    func updateDailyGoal(by newWeight: Double, times newProteinMultiplier: Double) {
+        userProfile.userWeight = newWeight
+        userProfile.proteinMultiplier = newProteinMultiplier
+    }
     
     func save() {
         do {
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
             
-            let data = try encoder.encode(entries)
-            
+            let package = AppData(entries: entries, profile: userProfile)
+            let data = try encoder.encode(package)
             try data.write(to: dataFileURL)
             
             print("✅ Data saved successfully to: \(dataFileURL)")
@@ -226,14 +237,15 @@ class ProteinDataViewModel: ObservableObject {
         
         do {
             let decoder = JSONDecoder()
-            self.entries = try decoder.decode([ProteinEntry].self, from: data)
+            let package = try decoder.decode(AppData.self, from: data)
+            self.entries = package.entries
+            self.userProfile = package.profile
             print("✅ Data loaded successfully.")
         } catch {
             print("❌ Failed to decode data: \(error.localizedDescription). Loading mock data as a fallback.")
             loadMockData()
         }
     }
-    
     
     private func loadMockData() {
         let today = Date()
