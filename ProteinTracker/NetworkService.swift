@@ -14,9 +14,9 @@ enum NetworkError: Error {
     var userFriendlyDescription: String {
         switch self {
         case .invalidURL, .invalidSearchTerm:
-            return "There was a problem constructing the search request."
+            return String(localized: "network.constructionError")
         case .requestFailed:
-            return "The request to the server failed. Please check your internet connection and try again."
+            return String(localized: "network.requestFailed")
         }
     }
 }

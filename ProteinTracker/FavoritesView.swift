@@ -8,15 +8,13 @@
 import SwiftUI
 
 struct FavoritesView: View {
-    @EnvironmentObject var viewModel: ProteinDataViewModel
-    
     var body: some View {
         NavigationStack {
             ScrollView {
                 EntryCardView(type: .favorite, date: Date())
                     .padding()
             }
-            .navigationTitle("Favorites")
+            .navigationTitle(String(localized: "favorites.title"))
             .background(Color.appBackgroundColor)
         }
     }
@@ -24,5 +22,5 @@ struct FavoritesView: View {
 
 #Preview {
     FavoritesView()
-        .environmentObject(ProteinDataViewModel())
+        .modelContainer(ProteinDataStore.previewContainer())
 }

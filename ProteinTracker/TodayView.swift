@@ -5,29 +5,45 @@
 //  Created by drx on 2025/07/19.
 //
 
+import SwiftData
 import SwiftUI
 
 struct TodayView: View {
-    @EnvironmentObject var viewModel: ProteinDataViewModel
-    
-    // for addEntryModal
+    @Environment(\.modelContext) private var modelContext
+    @Query private var entries: [ProteinEntry]
+    @Query private var userProfiles: [UserProfile]
+
     @State private var isShowingAddSheet = false
     @State private var isShowingList = true
-    
-    // for searching
-    @State private var searchTerm: String = ""
+    @State private var searchTerm = ""
     @State private var searchResults: [Product] = []
-    @State private var isSearching: Bool = false
+    @State private var isSearching = false
     @State private var selectedProduct: Product?
     @State private var searchError: Error?
     @State private var isShowingErrorAlert = false
-    
-    let today = Date()
+
+    private let today = Date()
+
+    private var userProfile: UserProfile? {
+        userProfiles.first
+    }
+
+    private var totalProteinToday: Double {
+        ProteinDataStore.totalProtein(on: today, entries: entries)
+    }
+
+    private var stillNeededToday: Double {
+        ProteinDataStore.stillNeededProtein(on: today, entries: entries, profile: userProfile)
+    }
+
+    private var progressToday: Double {
+        ProteinDataStore.progress(on: today, entries: entries, profile: userProfile)
+    }
 
     var body: some View {
         NavigationStack {
             mainContent
-                .searchable(text: $searchTerm, prompt: "Search for a food...")
+                .searchable(text: $searchTerm, prompt: String(localized: "today.searchPrompt"))
                 .onSubmit(of: .search) {
                     Task {
                         await performSearch()
@@ -35,24 +51,22 @@ struct TodayView: View {
                 }
                 .sheet(isPresented: $isShowingAddSheet) {
                     AddEntryModalView(date: today)
-                        // .presentationDetents([.fraction(0.56), .large])
                 }
                 .sheet(item: $selectedProduct) { product in
                     AddEntryModalView(product: product, date: today)
                 }
-                .alert("Search Failed", isPresented: $isShowingErrorAlert, actions: {
-                    Button("OK") { }
+                .alert(String(localized: "today.searchFailed"), isPresented: $isShowingErrorAlert, actions: {
+                    Button(String(localized: "common.ok")) {}
                 }, message: {
                     if let networkError = searchError as? NetworkError {
                         Text(networkError.userFriendlyDescription)
                     } else {
-                        Text(searchError?.localizedDescription ?? "An unknown error occurred.")
+                        Text(searchError?.localizedDescription ?? String(localized: "today.unknownError"))
                     }
                 })
         }
     }
-    
-    // MARK: - Main Content Builder
+
     @ViewBuilder
     private var mainContent: some View {
         if searchTerm.isEmpty {
@@ -61,8 +75,7 @@ struct TodayView: View {
             searchResultView
         }
     }
-    
-    // MARK: - Dashboard (Normal View)
+
     private var dashboardView: some View {
         ZStack(alignment: .bottomTrailing) {
             ScrollView {
@@ -75,85 +88,80 @@ struct TodayView: View {
                 }
                 .padding()
             }
-            
+
             fabButton
         }
-        .navigationTitle("Today")
+        .navigationTitle(String(localized: "tab.today"))
         .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink(destination: UserProfileView()) {
-                        Image(systemName: "person.crop.circle")
-                            .font(.title3)
-                            .foregroundColor(.appSecondaryTextColor)
-                    }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                NavigationLink(destination: UserProfileView()) {
+                    Image(systemName: "person.crop.circle")
+                        .font(.title3)
+                        .foregroundColor(.appSecondaryTextColor)
+                }
+                .accessibilityLabel(String(localized: "accessibility.userProfile"))
             }
         }
         .background(Color.appBackgroundColor)
     }
-    
-    // MARK: - Search Result View
+
     private var searchResultView: some View {
         ZStack {
             Color.appBackgroundColor.ignoresSafeArea()
-            
+
             if isSearching {
                 ProgressView()
+                    .accessibilityLabel(String(localized: "accessibility.searching"))
             } else {
                 List(searchResults) { product in
                     SearchResultRowView(product: product)
                         .onTapGesture {
-                            self.selectedProduct = product
+                            selectedProduct = product
                         }
                 }
                 .scrollContentBackground(.hidden)
             }
         }
     }
-    
-    
-    
-    // MARK: - Subcomponents
-    
+
     private var headerSection: some View {
         HStack {
             HStack {
-                Text("🌍 \(today, format: .dateTime.weekday().month().day()), Good Day, \(viewModel.userProfile.userName)!")
+                Text("🌍 \(today, format: .dateTime.weekday().month().day()), \(String(localized: "today.goodDay \(userProfile?.userName ?? "User")"))")
                     .onTapGesture(count: 3) {
                         let generator = UINotificationFeedbackGenerator()
                         generator.notificationOccurred(.success)
-                        viewModel.resetToMockData()
+                        ProteinDataStore.resetToMockData(in: modelContext)
                     }
             }
-            
-            Spacer()
-            
 
+            Spacer()
         }
     }
-    
+
     private var stillNeedCard: some View {
         VStack {
             HStack {
-                Text("Still Need")
+                Text(String(localized: "today.stillNeed"))
                     .font(.title)
                     .bold()
                 Spacer()
             }
             .foregroundColor(.appAccentColor)
-            
+
             HStack {
-                Text("\(String(format: "%.1f" ,viewModel.stillNeededProtein(on: today))) Grams")
+                Text(String(localized: "today.grams.\(String(format: "%.1f", stillNeededToday))"))
                     .font(.system(size: 40, weight: .heavy))
                     .bold()
                     .foregroundColor(.appBackgroundColor)
                     .contentTransition(.numericText())
-                    .animation(.snappy, value: viewModel.stillNeededProtein(on: today))
+                    .animation(.snappy, value: stillNeededToday)
 
                 Spacer()
             }
-            
+
             HStack {
-                Text("Your Daily Protein Goal is \(String(format: "%.1f", viewModel.userProfile.dailyGoal)) Grams")
+                Text(String(localized: "today.dailyGoal.\(String(format: "%.1f", userProfile?.dailyGoal ?? 0))"))
                 Spacer()
             }
             .font(.subheadline)
@@ -161,14 +169,19 @@ struct TodayView: View {
             .foregroundColor(.appBackgroundColor)
         }
         .padding()
-        .background(RoundedRectangle(cornerRadius: 28)
-            .fill(Color.appPrimaryColor))
+        .background(RoundedRectangle(cornerRadius: 28).fill(Color.appPrimaryColor))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            String(
+                localized: "accessibility.stillNeed.\(String(format: "%.1f", stillNeededToday)).\(String(format: "%.1f", userProfile?.dailyGoal ?? 0))"
+            )
+        )
     }
-    
+
     private var historyCard: some View {
         VStack {
             HStack {
-                Text("Already taken in \(String(format: "%.1f", viewModel.totalProtein(on: Date()))) Grams.")
+                Text(String(localized: "today.alreadyTaken.\(String(format: "%.1f", totalProteinToday))"))
                     .font(.subheadline)
                     .bold()
                 Spacer()
@@ -181,24 +194,34 @@ struct TodayView: View {
             .onTapGesture {
                 let generator = UIImpactFeedbackGenerator(style: .medium)
                 generator.impactOccurred()
-                withAnimation { isShowingList.toggle() }
+                withAnimation {
+                    isShowingList.toggle()
+                }
             }
-            
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityLabel(String(localized: "accessibility.historyList"))
+            .accessibilityValue(isShowingList ? String(localized: "accessibility.expanded") : String(localized: "accessibility.collapsed"))
+            .accessibilityHint(String(localized: "accessibility.toggleHint"))
+
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 3)
                     .fill(Color.appSecondaryTextColor.opacity(0.3))
                 GeometryReader { geometry in
-                    RoundedRectangle(cornerRadius: 3).fill(Color.appPrimaryColor)
-                        .frame(width: geometry.size.width * viewModel.progress(on: today))
-                        .animation(.spring(response: 0.5, dampingFraction: 0.9), value: viewModel.entries)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color.appPrimaryColor)
+                        .frame(width: geometry.size.width * progressToday)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.9), value: progressToday)
                 }
             }
             .frame(height: 4)
             .padding(.top)
             .padding(.horizontal)
             .padding(.bottom, 8)
-            
-            // View of History List
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(String(localized: "accessibility.progressBar"))
+            .accessibilityValue(String(localized: "accessibility.progressPercent.\(Int(progressToday * 100))"))
+
             if isShowingList {
                 EntryCardView(type: .history, date: today)
             }
@@ -206,26 +229,25 @@ struct TodayView: View {
         .padding(isShowingList ? .top : .vertical)
         .background(RoundedRectangle(cornerRadius: 28).fill(Color.appAccentColor))
     }
-    
+
     private var planCard: some View {
         VStack {
             VStack {
-                Text("Today's Plan")
+                Text(String(localized: "today.plan"))
                     .font(.subheadline)
                     .bold()
                     .foregroundColor(.appPrimaryColor)
             }
-            
+
             EntryCardView(type: .plan, date: today)
         }
     }
-    
+
     private var fabButton: some View {
         Button(
             action: {
                 let generator = UIImpactFeedbackGenerator(style: .medium)
                 generator.impactOccurred()
-                
                 isShowingAddSheet = true
             }
         ) {
@@ -234,48 +256,47 @@ struct TodayView: View {
                 .foregroundColor(.appPrimaryColor)
                 .shadow(color: .appPrimaryTextColor.opacity(0.3), radius: 5, y: 3)
         }
+        .accessibilityLabel(String(localized: "accessibility.addEntry"))
         .padding()
     }
-    
-    // MARK: - Methods
-    
+
     @MainActor
     private func performSearch() async {
         isSearching = true
-        
+
         defer {
             isSearching = false
         }
-        
+
         do {
             let service = NetworkService()
             let products = try await service.searchFoodInfo(searchName: searchTerm)
-            self.searchResults = products
+            searchResults = products
         } catch {
             print("❌ Search failed: \(error)")
-            self.searchError = error
-            self.isShowingErrorAlert = true
+            searchError = error
+            isShowingErrorAlert = true
         }
     }
 }
-
-// MARK: - Helper Views
 
 private struct SearchResultRowView: View {
     let product: Product
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text(product.productName ?? "Unknown Product")
+            Text(product.productName ?? String(localized: "today.unknownProduct"))
                 .font(.headline)
-            Text("\(product.proteinValue, specifier: "%.1f")g protein per 100g")
+            Text(String(localized: "today.proteinPer100g.\(String(format: "%.1f", product.proteinValue))"))
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(product.productName ?? String(localized: "today.unknownProduct")), \(String(localized: "today.proteinPer100g.\(String(format: "%.1f", product.proteinValue))"))")
     }
 }
 
 #Preview {
     TodayView()
-        .environmentObject(ProteinDataViewModel())
+        .modelContainer(ProteinDataStore.previewContainer())
 }

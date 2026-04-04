@@ -5,332 +5,402 @@
 //  Created by drx on 2025/07/25.
 //
 
-import Combine
 import Foundation
+import SwiftData
 
-enum FavoriteStatus {
-    case added
-    case alreadyExists
-}
+enum ProteinDataStore {
+    static func ensureSeedData(in context: ModelContext) {
+        let entryCount = (try? context.fetchCount(FetchDescriptor<ProteinEntry>())) ?? 0
+        let profileCount = (try? context.fetchCount(FetchDescriptor<UserProfile>())) ?? 0
 
-let favoriteStatusPublisher = PassthroughSubject<FavoriteStatus, Never>()
-
-class ProteinDataViewModel: ObservableObject {
-    private var cancellables = Set<AnyCancellable>()
-
-    @Published var entries: [ProteinEntry] = []
-    @Published var userProfile: UserProfile = UserProfile()
-    
-    private var dataFileURL: URL {
-        let docDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        return docDirectory.appendingPathComponent("protein_entries.json")
-    }
-    
-    init() {
-        load()
-        $entries
-            .debounce(for: .seconds(0.8), scheduler: RunLoop.main)
-            .sink { [weak self] _ in
-                self?.save()
-            }
-            .store(in: &cancellables)
-        $userProfile
-            .debounce(for: .seconds(0.8), scheduler: RunLoop.main)
-            .sink { [weak self] _ in
-                self?.save()
-            }
-            .store(in: &cancellables)
-    }
-    
-    
-    
-    //From Primitive Data to History Entry
-    func addHistoryEntry (proteinAmount: Double, foodName: String, description: String, isFavorite: Bool = false) {
-        let newEntry = ProteinEntry(proteinAmount: proteinAmount, foodName: foodName, description: description, isFavorite: isFavorite, isPlan: false, isHistory: true)
-        entries.append(newEntry)
-    }
-    
-    //From Favorite Entry to History Entry
-    func addHistoryEntry (from favoriteEntry: ProteinEntry) {
-        let newEntry = ProteinEntry(proteinAmount: favoriteEntry.proteinAmount, foodName: favoriteEntry.foodName, description: favoriteEntry.description, isFavorite: true, isPlan: false, isHistory: true)
-        entries.append(newEntry)
-    }
-    
-    //From Primitive Data to Plan Entry
-    func addPlanEntry(proteinAmount: Double, foodName: String, description: String, date: Date, isFavorite: Bool = false) {
-        let newEntry = ProteinEntry(proteinAmount: proteinAmount, foodName: foodName, description: description, timeStamp: date, isFavorite: isFavorite, isPlan: true, isHistory: false)
-        entries.append(newEntry)
-    }
-    
-    //From Favorite Entry to Plan Entry
-    func addPlanEntry(from favoriteEntry: ProteinEntry, on date: Date) {
-        let newEntry = ProteinEntry(proteinAmount: favoriteEntry.proteinAmount, foodName: favoriteEntry.foodName, description: favoriteEntry.description, timeStamp: date, isFavorite: true, isPlan: true, isHistory: false)
-        entries.append(newEntry)
-    }
-    
-    //From Primitive Data to Favorite Entry
-    func addFavoriteEntry(proteinAmount: Double, foodName: String, description: String) {
-        let newEntry = ProteinEntry(proteinAmount: proteinAmount, foodName: foodName, description: description, isFavorite: true, isPlan: false, isHistory: false)
-        entries.append(newEntry)
-    }
-    
-    //From other entries to Favorite Entry, click Star Icon to add a copy.
-    func addFavoriteEntry(from otherEntry: ProteinEntry) {
-        let favoriteTemplateExists = entries.contains {
-            $0.foodName == otherEntry.foodName && $0.isFavorite && !$0.isPlan && !$0.isHistory
+        if profileCount == 0 {
+            context.insert(UserProfile())
         }
-        
-        if !favoriteTemplateExists {
-            addFavoriteEntry(proteinAmount: otherEntry.proteinAmount, foodName: otherEntry.foodName, description: otherEntry.description)
-        }
-                
-        for index in entries.indices {
-            if entries[index].foodName == otherEntry.foodName {
-                entries[index].isFavorite = true
+
+        if entryCount == 0 {
+            for entry in makeMockEntries() {
+                context.insert(entry)
             }
         }
-    }
-    
 
-    func completePlan(withID uuid: UUID) {
-        if let index = entries.firstIndex(where: { $0.id == uuid }) {
-            entries[index].isPlan = false
-            entries[index].isHistory = true
-            entries[index].timeStamp = Date()
-        }
+        saveIfNeeded(context)
     }
 
-    func revertToPlan(withID uuid: UUID) {
-        if let index = entries.firstIndex(where: { $0.id == uuid }) {
-            entries[index].isPlan = true
-            entries[index].isHistory = false
+    @MainActor
+    static func previewContainer() -> ModelContainer {
+        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+
+        do {
+            let container = try ModelContainer(
+                for: ProteinEntry.self,
+                UserProfile.self,
+                configurations: configuration
+            )
+            ensureSeedData(in: container.mainContext)
+            return container
+        } catch {
+            fatalError("Failed to create preview ModelContainer: \(error)")
         }
     }
 
-    func deleteEntries(_ entriesToDelete: [ProteinEntry]) {
-        let idsToDelete = Set(entriesToDelete.map { $0.id })
-
-        entries.removeAll { entry in
-            idsToDelete.contains(entry.id)
-        }
-    }
-    
-    func deleteEntry(withId id: UUID) {
-        entries.removeAll { $0.id == id }
-    }
-    
-    func changeEntry (uuid: UUID, proteinAmount: Double, foodName: String, description: String) {
-        if let index = entries.firstIndex(where: {$0.id == uuid}) {
-            entries[index].proteinAmount = proteinAmount
-            entries[index].foodName = foodName
-            entries[index].description = description
-        }
-    }
-    
-    func togglePlanStatus (id: UUID) {
-        if let index = entries.firstIndex(where: {$0.id == id}) {
-            entries[index].isPlan.toggle()
-        }
-    }
-    
-    func toggleTakenInStatus (id: UUID) {
-        if let index = entries.firstIndex(where: {$0.id == id}) {
-            entries[index].isPlan.toggle()
-        }
-    }
-    
-    
-    // temprory for development
-    func resetToMockData() {
-        print("🔄 Resetting to mock data.")
-        loadMockData()
-    }
-    
-    func getEntries(for type: EntryType, on date: Date? = nil) -> [ProteinEntry] {
+    static func entries(for type: EntryType, on date: Date? = nil, from entries: [ProteinEntry]) -> [ProteinEntry] {
         let filteredByType: [ProteinEntry]
+
         switch type {
-            case .history: filteredByType = self.entries.filter { $0.isHistory && !$0.isPlan }
-            case .favorite: filteredByType = self.entries.filter { $0.isFavorite && !$0.isPlan && !$0.isHistory}
-            case .plan: filteredByType = self.entries.filter { $0.isPlan && !$0.isHistory}
+        case .history:
+            filteredByType = entries.filter { $0.isHistory && !$0.isPlan }
+        case .plan:
+            filteredByType = entries.filter { $0.isPlan && !$0.isHistory }
+        case .favorite:
+            filteredByType = entries.filter { $0.isFavorite && !$0.isPlan && !$0.isHistory }
         }
-        
+
         let filteredByDate: [ProteinEntry]
-        if let date = date, type != .favorite {
+        if let date, type != .favorite {
             filteredByDate = filteredByType.filter { Calendar.current.isDate($0.timeStamp, inSameDayAs: date) }
         } else {
             filteredByDate = filteredByType
         }
-        
+
         switch type {
         case .history, .favorite:
-            return filteredByDate.sorted(by: { $0.timeStamp > $1.timeStamp })
+            return filteredByDate.sorted { $0.timeStamp > $1.timeStamp }
         case .plan:
-            return filteredByDate.sorted(by: { $0.timeStamp < $1.timeStamp })
+            return filteredByDate.sorted { $0.timeStamp < $1.timeStamp }
         }
-    }
-    
-    // MARK: - Calculation Methods
-    func totalProtein(on date: Date) -> Double {
-        let entriesForDay = getEntries(for: .history, on: date)
-        
-        let total = entriesForDay.reduce(0) { sum, entry in
-            sum + entry.proteinAmount
-        }
-        
-        return total
     }
 
-    func stillNeededProtein(on date: Date) -> Double {
-        let totalToday = totalProtein(on: date)
-        let needed = userProfile.dailyGoal - totalToday
+    static func totalProtein(on date: Date, entries allEntries: [ProteinEntry]) -> Double {
+        entries(for: .history, on: date, from: allEntries).reduce(0) { $0 + $1.proteinAmount }
+    }
+
+    static func stillNeededProtein(on date: Date, entries allEntries: [ProteinEntry], profile: UserProfile?) -> Double {
+        let needed = (profile?.dailyGoal ?? 0) - totalProtein(on: date, entries: allEntries)
         return max(0, needed)
     }
 
-    func progress(on date: Date) -> Double {
-        guard userProfile.dailyGoal > 0 else { return 0 }
-        
-        let totalToday = totalProtein(on: date)
-        let calculatedProgress = totalToday / userProfile.dailyGoal
+    static func progress(on date: Date, entries allEntries: [ProteinEntry], profile: UserProfile?) -> Double {
+        guard let goal = profile?.dailyGoal, goal > 0 else {
+            return 0
+        }
+
+        let calculatedProgress = totalProtein(on: date, entries: allEntries) / goal
         return min(1, calculatedProgress)
     }
-    
-    func getWeeklyProteinData(on date: Date = Date()) -> [DailyProteinData] {
-        var weeklyProteinData:[DailyProteinData] = []
-        let calendar = Calendar.current
-        
-        for i in (0..<7).reversed() {
-            if let loopDate = calendar.date(byAdding: .day, value: -i, to: date) {
-                let dataPoint = DailyProteinData(date: loopDate, totalProtein: totalProtein(on: loopDate))
-                weeklyProteinData.append(dataPoint)
-            }
-        }
-        return weeklyProteinData
-    }
-    
 
-    func updateDailyGoal(by newWeight: Double, times newProteinMultiplier: Double) {
-        userProfile.userWeight = newWeight
-        userProfile.proteinMultiplier = newProteinMultiplier
-    }
-    
-    func save() {
-        do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            
-            let package = AppData(entries: entries, profile: userProfile)
-            let data = try encoder.encode(package)
-            try data.write(to: dataFileURL)
-            
-            print("✅ Data saved successfully to: \(dataFileURL)")
-        } catch {
-            print("❌ Failed to save data: \(error.localizedDescription)")
+    static func weeklyProteinData(on date: Date = Date(), entries allEntries: [ProteinEntry]) -> [DailyProteinData] {
+        let calendar = Calendar.current
+
+        return (0..<7).reversed().compactMap { dayIndex in
+            guard let loopDate = calendar.date(byAdding: .day, value: -dayIndex, to: date) else {
+                return nil
+            }
+
+            return DailyProteinData(date: loopDate, totalProtein: totalProtein(on: loopDate, entries: allEntries))
         }
     }
-    
-    func load() {
-        guard let data = try? Data(contentsOf: dataFileURL) else {
-            print("📝 No saved data found. Loading mock data.")
-            loadMockData()
+
+    static func addHistoryEntry(
+        proteinAmount: Double,
+        foodName: String,
+        description: String,
+        date: Date = Date(),
+        isFavorite: Bool = false,
+        in context: ModelContext
+    ) {
+        let newEntry = ProteinEntry(
+            proteinAmount: proteinAmount,
+            foodName: foodName,
+            entryDescription: description,
+            timeStamp: date,
+            isFavorite: isFavorite,
+            isPlan: false,
+            isHistory: true
+        )
+        context.insert(newEntry)
+        saveIfNeeded(context)
+    }
+
+    static func addHistoryEntry(from favoriteEntry: ProteinEntry, in context: ModelContext) {
+        addHistoryEntry(
+            proteinAmount: favoriteEntry.proteinAmount,
+            foodName: favoriteEntry.foodName,
+            description: favoriteEntry.entryDescription,
+            isFavorite: true,
+            in: context
+        )
+    }
+
+    static func addPlanEntry(
+        proteinAmount: Double,
+        foodName: String,
+        description: String,
+        date: Date,
+        isFavorite: Bool = false,
+        in context: ModelContext
+    ) {
+        let newEntry = ProteinEntry(
+            proteinAmount: proteinAmount,
+            foodName: foodName,
+            entryDescription: description,
+            timeStamp: date,
+            isFavorite: isFavorite,
+            isPlan: true,
+            isHistory: false
+        )
+        context.insert(newEntry)
+        saveIfNeeded(context)
+    }
+
+    static func addPlanEntry(from favoriteEntry: ProteinEntry, on date: Date, in context: ModelContext) {
+        addPlanEntry(
+            proteinAmount: favoriteEntry.proteinAmount,
+            foodName: favoriteEntry.foodName,
+            description: favoriteEntry.entryDescription,
+            date: date,
+            isFavorite: true,
+            in: context
+        )
+    }
+
+    static func addFavoriteEntry(proteinAmount: Double, foodName: String, description: String, in context: ModelContext) {
+        let newEntry = ProteinEntry(
+            proteinAmount: proteinAmount,
+            foodName: foodName,
+            entryDescription: description,
+            isFavorite: true,
+            isPlan: false,
+            isHistory: false
+        )
+        context.insert(newEntry)
+        saveIfNeeded(context)
+    }
+
+    static func addFavoriteEntry(from otherEntry: ProteinEntry, in context: ModelContext) {
+        let existingEntries = (try? context.fetch(FetchDescriptor<ProteinEntry>())) ?? []
+        let favoriteTemplateExists = existingEntries.contains {
+            $0.foodName == otherEntry.foodName && $0.isFavorite && !$0.isPlan && !$0.isHistory
+        }
+
+        if !favoriteTemplateExists {
+            addFavoriteEntry(
+                proteinAmount: otherEntry.proteinAmount,
+                foodName: otherEntry.foodName,
+                description: otherEntry.entryDescription,
+                in: context
+            )
+        }
+
+        for entry in existingEntries where entry.foodName == otherEntry.foodName {
+            entry.isFavorite = true
+        }
+
+        saveIfNeeded(context)
+    }
+
+    static func completePlan(_ entry: ProteinEntry, in context: ModelContext) {
+        entry.isPlan = false
+        entry.isHistory = true
+        entry.timeStamp = Date()
+        saveIfNeeded(context)
+    }
+
+    static func revertToPlan(_ entry: ProteinEntry, in context: ModelContext) {
+        entry.isPlan = true
+        entry.isHistory = false
+        saveIfNeeded(context)
+    }
+
+    static func delete(_ entry: ProteinEntry, in context: ModelContext) {
+        context.delete(entry)
+        saveIfNeeded(context)
+    }
+
+    static func resetToMockData(in context: ModelContext) {
+        let existingEntries = (try? context.fetch(FetchDescriptor<ProteinEntry>())) ?? []
+
+        for entry in existingEntries {
+            context.delete(entry)
+        }
+
+        for entry in makeMockEntries() {
+            context.insert(entry)
+        }
+
+        saveIfNeeded(context)
+    }
+
+    static func saveIfNeeded(_ context: ModelContext) {
+        guard context.hasChanges else {
             return
         }
-        
+
         do {
-            let decoder = JSONDecoder()
-            let package = try decoder.decode(AppData.self, from: data)
-            self.entries = package.entries
-            self.userProfile = package.profile
-            print("✅ Data loaded successfully.")
+            try context.save()
         } catch {
-            print("❌ Failed to decode data: \(error.localizedDescription). Loading mock data as a fallback.")
-            loadMockData()
+            assertionFailure("Failed to save model context: \(error)")
         }
     }
-    
-    private func loadMockData() {
+
+    private static func makeMockEntries() -> [ProteinEntry] {
         let today = Date()
         let calendar = Calendar.current
-        
-        // 1. 食物池 (数值调高，更像正餐)
+
         let breakfastItems = [
-            ("Oatmeal & Double Whey", 45.0), ("4 Eggs Scrambled", 50.0), ("Mega Yogurt Parfait", 60.3), ("Protein Pancakes Stack", 40.0)
+            ("Oatmeal & Double Whey", 45.0),
+            ("4 Eggs Scrambled", 50.0),
+            ("Mega Yogurt Parfait", 60.3),
+            ("Protein Pancakes Stack", 40.0)
         ]
         let lunchItems = [
-            ("Double Chicken Salad", 60.0), ("Tuna Melt & Shake", 55.8), ("Beef Burrito XL", 55.0), ("Turkey Club w/ Extra Meat", 68.6)
+            ("Double Chicken Salad", 60.0),
+            ("Tuna Melt & Shake", 55.8),
+            ("Beef Burrito XL", 55.0),
+            ("Turkey Club w/ Extra Meat", 68.6)
         ]
         let dinnerItems = [
-            ("Salmon Fillet (200g)", 50.7), ("Steak (300g)", 65.0), ("Tofu & Beans Stew", 55.0), ("Cod & Lentils", 52.0)
+            ("Salmon Fillet (200g)", 50.7),
+            ("Steak (300g)", 65.0),
+            ("Tofu & Beans Stew", 55.0),
+            ("Cod & Lentils", 52.0)
         ]
-        // 零食也变大一点
         let snackItems = [
-            ("Large Protein Bar", 45.6), ("Casein Shake", 30.0), ("Cottage Cheese Tub", 55.0), ("Beef Jerky Pack", 42.7)
+            ("Large Protein Bar", 45.6),
+            ("Casein Shake", 30.0),
+            ("Cottage Cheese Tub", 55.0),
+            ("Beef Jerky Pack", 42.7)
         ]
-        
+
         let newHistoryEntries: [ProteinEntry] = (0..<7).flatMap { dayIndex -> [ProteinEntry] in
-            guard let date = calendar.date(byAdding: .day, value: -dayIndex, to: today) else { return [] }
-            
-            // 2. 目标控制 (保持不变)
+            guard let date = calendar.date(byAdding: .day, value: -dayIndex, to: today) else {
+                return []
+            }
+
             let isHighDay = Double.random(in: 0...1) < 0.7
             let targetTotal = isHighDay ? Double.random(in: 260...280) : Double.random(in: 240...260)
-            
+
             var dailyEntries: [ProteinEntry] = []
             var currentTotal = 0.0
-            
-            // 3. 基础三餐 (必吃)
             let meals = [
                 (breakfastItems, "Breakfast"),
                 (lunchItems, "Lunch"),
                 (dinnerItems, "Dinner")
             ]
-            
-            for (items, desc) in meals {
+
+            for (items, description) in meals {
                 let item = items.randomElement()!
-                dailyEntries.append(ProteinEntry(proteinAmount: item.1, foodName: item.0, description: desc, timeStamp: date, isFavorite: false, isPlan: false, isHistory: true))
+                dailyEntries.append(
+                    ProteinEntry(
+                        proteinAmount: item.1,
+                        foodName: item.0,
+                        entryDescription: description,
+                        timeStamp: date,
+                        isFavorite: false,
+                        isPlan: false,
+                        isHistory: true
+                    )
+                )
                 currentTotal += item.1
             }
-            
-            // 4. 智能补齐 (Loop until target reached, but max 3 snacks)
+
             var snackCount = 0
-            while currentTotal < targetTotal && snackCount < 3 { // 限制零食最多3个，总条目最多6个
+            while currentTotal < targetTotal && snackCount < 3 {
                 let remaining = targetTotal - currentTotal
-                
+
                 if remaining < 15 {
-                    // 缺口小于15g，直接加到上一顿饭里，不创建新条目！这样数据更整洁。
-                    if var lastEntry = dailyEntries.last {
+                    if let lastEntry = dailyEntries.last {
                         lastEntry.proteinAmount += remaining
-                        // 稍微改下名字，显得真实
                         if !lastEntry.foodName.contains("& Side") {
                             lastEntry.foodName += " & Side"
                         }
-                        dailyEntries[dailyEntries.count - 1] = lastEntry
                     }
                     currentTotal += remaining
                 } else {
-                    // 缺口较大，加一个零食
-                    let sItem = snackItems.randomElement()!
-                    // 确保不会加上去之后大大超标，取 remaining 和 sItem 的较小值，或者允许稍微超标一点点
-                    let amountToAdd = min(sItem.1, remaining + 5)
-                    dailyEntries.append(ProteinEntry(proteinAmount: amountToAdd, foodName: sItem.0, description: "Snack", timeStamp: date, isFavorite: false, isPlan: false, isHistory: true))
+                    let snackItem = snackItems.randomElement()!
+                    let amountToAdd = min(snackItem.1, remaining + 5)
+                    dailyEntries.append(
+                        ProteinEntry(
+                            proteinAmount: amountToAdd,
+                            foodName: snackItem.0,
+                            entryDescription: "Snack",
+                            timeStamp: date,
+                            isFavorite: false,
+                            isPlan: false,
+                            isHistory: true
+                        )
+                    )
                     currentTotal += amountToAdd
                     snackCount += 1
                 }
             }
-            
+
             return dailyEntries
         }
-            // --- END: New History Mock Data ---
-            
-        self.entries = newHistoryEntries + [
-            // favorite
-            ProteinEntry(proteinAmount: 40.2, foodName: "Grilled Chicken Breast", description: "Lunch", timeStamp: Date().addingTimeInterval(-10800), isFavorite: true, isPlan: false, isHistory: false),
-            ProteinEntry(proteinAmount: 15.0, foodName: "Greek Yogurt", description: "Snack", timeStamp: Date().addingTimeInterval(-18000), isFavorite: true, isPlan: false, isHistory: false),
-            ProteinEntry(proteinAmount: 21.0, foodName: "Scrambled Eggs (3)", description: "Breakfast", timeStamp: Date().addingTimeInterval(-36000), isFavorite: true, isPlan: false, isHistory: false),
-            ProteinEntry(proteinAmount: 30.8, foodName: "Salmon Fillet", description: "Dinner yesterday", timeStamp: Date().addingTimeInterval(-93600), isFavorite: true, isPlan: false, isHistory: false),
-            ProteinEntry(proteinAmount: 12.5, foodName: "Cottage Cheese", description: "Late night snack yesterday", timeStamp: Date().addingTimeInterval(-82800), isFavorite: true, isPlan: false, isHistory: false),
-            
-            // plan
-            ProteinEntry(proteinAmount: 48.0, foodName: "Whey Protein Shake", description: "Post-workout", timeStamp: Date().addingTimeInterval(1800), isFavorite: false, isPlan: true, isHistory: false),
-            ProteinEntry(proteinAmount: 40.2, foodName: "Grilled Chicken Breast", description: "Lunch", timeStamp: Date().addingTimeInterval(10800), isFavorite: false, isPlan: true, isHistory: false),
+
+        return newHistoryEntries + [
+            ProteinEntry(
+                proteinAmount: 40.2,
+                foodName: "Grilled Chicken Breast",
+                entryDescription: "Lunch",
+                timeStamp: Date().addingTimeInterval(-10800),
+                isFavorite: true,
+                isPlan: false,
+                isHistory: false
+            ),
+            ProteinEntry(
+                proteinAmount: 15.0,
+                foodName: "Greek Yogurt",
+                entryDescription: "Snack",
+                timeStamp: Date().addingTimeInterval(-18000),
+                isFavorite: true,
+                isPlan: false,
+                isHistory: false
+            ),
+            ProteinEntry(
+                proteinAmount: 21.0,
+                foodName: "Scrambled Eggs (3)",
+                entryDescription: "Breakfast",
+                timeStamp: Date().addingTimeInterval(-36000),
+                isFavorite: true,
+                isPlan: false,
+                isHistory: false
+            ),
+            ProteinEntry(
+                proteinAmount: 30.8,
+                foodName: "Salmon Fillet",
+                entryDescription: "Dinner yesterday",
+                timeStamp: Date().addingTimeInterval(-93600),
+                isFavorite: true,
+                isPlan: false,
+                isHistory: false
+            ),
+            ProteinEntry(
+                proteinAmount: 12.5,
+                foodName: "Cottage Cheese",
+                entryDescription: "Late night snack yesterday",
+                timeStamp: Date().addingTimeInterval(-82800),
+                isFavorite: true,
+                isPlan: false,
+                isHistory: false
+            ),
+            ProteinEntry(
+                proteinAmount: 48.0,
+                foodName: "Whey Protein Shake",
+                entryDescription: "Post-workout",
+                timeStamp: Date().addingTimeInterval(1800),
+                isFavorite: false,
+                isPlan: true,
+                isHistory: false
+            ),
+            ProteinEntry(
+                proteinAmount: 40.2,
+                foodName: "Grilled Chicken Breast",
+                entryDescription: "Lunch",
+                timeStamp: Date().addingTimeInterval(10800),
+                isFavorite: false,
+                isPlan: true,
+                isHistory: false
+            )
         ]
     }
 }

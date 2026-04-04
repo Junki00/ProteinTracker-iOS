@@ -5,10 +5,11 @@
 //  Created by drx on 2025/08/16.
 //
 
+import SwiftData
 import SwiftUI
 
 struct EntryRowView: View {
-    @EnvironmentObject var viewModel: ProteinDataViewModel
+    @Environment(\.modelContext) private var modelContext
     
     @State private var isAdded = false
     
@@ -27,6 +28,8 @@ struct EntryRowView: View {
                     .foregroundColor(.appBackgroundColor)
             }
             .frame(width: 60, height: 60)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(String(localized: "accessibility.proteinGrams.\(String(format: "%.1f", entry.proteinAmount))"))
             
             //Column Middle
             VStack(alignment: .leading) {
@@ -35,7 +38,7 @@ struct EntryRowView: View {
                         .foregroundColor(.appPrimaryTextColor)
                         .font(.headline)
                         .lineLimit(1)
-                    Text(entry.description)
+                    Text(entry.entryDescription)
                         .foregroundColor(.appSecondaryTextColor)
                         .font(.subheadline)
                         .lineLimit(1)
@@ -56,12 +59,13 @@ struct EntryRowView: View {
                             HStack {
                                 Image(systemName: "calendar.badge.plus")
                                     .font(.subheadline)
-                                Text("Add to Plan")
+                                Text(String(localized: "entryRow.addToPlan"))
                                     .font(.caption)
                             }
                             .foregroundColor(.appPrimaryColor)
                         }
                         .buttonStyle(.borderless)
+                        .accessibilityLabel(String(localized: "accessibility.addToPlan.\(entry.foodName)"))
                     }
                 }
             }
@@ -71,15 +75,16 @@ struct EntryRowView: View {
             //Column Right: Star Icon, Check Icon
             VStack(alignment: .trailing) {
                 if entry.isFavorite {
-                    Text("Favorite")
+                    Text(String(localized: "entryRow.favorite"))
                         .font(.caption)
+                        .accessibilityLabel(String(localized: "accessibility.isFavorite"))
                 } else {
                     Button(
                         action: {
                             let generator = UINotificationFeedbackGenerator()
                             generator.notificationOccurred(.success)
                             
-                            viewModel.addFavoriteEntry(from: entry)
+                            ProteinDataStore.addFavoriteEntry(from: entry, in: modelContext)
                         }
                     ) {
                         Image(systemName: ("star"))
@@ -87,6 +92,7 @@ struct EntryRowView: View {
                             .foregroundColor(.appPrimaryColor)
                     }
                     .buttonStyle(.borderless)
+                    .accessibilityLabel(String(localized: "accessibility.addToFavorites"))
                 }
                             
                 Spacer()
@@ -97,12 +103,13 @@ struct EntryRowView: View {
                             let generator = UIImpactFeedbackGenerator(style: .medium)
                             generator.impactOccurred()
                             
-                            viewModel.revertToPlan(withID: entry.id)
+                            ProteinDataStore.revertToPlan(entry, in: modelContext)
                         }
                     ) {
                         Image(systemName: ("checkmark.circle.fill"))
                     }
                     .buttonStyle(.borderless)
+                    .accessibilityLabel(String(localized: "accessibility.revertToPlan"))
                 } else if type == .plan {
                     Button(
                         action: {
@@ -110,12 +117,13 @@ struct EntryRowView: View {
                             let generator = UINotificationFeedbackGenerator()
                             generator.notificationOccurred(.success)
                             
-                            viewModel.completePlan(withID: entry.id)
+                            ProteinDataStore.completePlan(entry, in: modelContext)
                         }
                     ) {
                         Image(systemName: ("checkmark.circle"))
                     }
                     .buttonStyle(.borderless)
+                    .accessibilityLabel(String(localized: "accessibility.completePlan"))
                 } else {
                     Button(
                         action: {
@@ -123,7 +131,7 @@ struct EntryRowView: View {
                             let generator = UINotificationFeedbackGenerator()
                             generator.notificationOccurred(.success)
                             
-                            viewModel.addHistoryEntry(from: entry)
+                            ProteinDataStore.addHistoryEntry(from: entry, in: modelContext)
                             
                             isAdded = true
                             
@@ -139,6 +147,7 @@ struct EntryRowView: View {
                             .foregroundColor(isAdded ? .green : .appPrimaryColor)
                     }
                     .buttonStyle(.borderless)
+                    .accessibilityLabel(isAdded ? String(localized: "accessibility.added") : String(localized: "accessibility.addToHistory"))
                 }
             }
             .foregroundColor(.appPrimaryColor)
@@ -176,22 +185,37 @@ extension View {
 
 
 #Preview {
-    ZStack {
-        EntryRowView(entry: ProteinDataViewModel().entries[0], type: .plan)
-            .padding()
-    }
-    
-    ZStack {
-        EntryRowView(entry: ProteinDataViewModel().entries[0], type: .favorite, onAddToPlanTapped: {
-            print("✅ Add to Plan button tapped in Preview.")
-        })
-            .padding()
-    }
-    
-    ZStack {
-        Color.appAccentColor.ignoresSafeArea()
-        EntryRowView(entry: ProteinDataViewModel().entries[0], type: .history)
-            .padding()
-    }
+    PreviewEntryRowView(type: .plan)
+        .modelContainer(ProteinDataStore.previewContainer())
+
+    PreviewEntryRowView(type: .favorite)
+        .modelContainer(ProteinDataStore.previewContainer())
+
+    PreviewEntryRowView(type: .history)
+        .modelContainer(ProteinDataStore.previewContainer())
 }
 
+private struct PreviewEntryRowView: View {
+    @Query private var entries: [ProteinEntry]
+
+    let type: EntryType
+
+    var body: some View {
+        if let entry = entries.first {
+            ZStack {
+                if type == .history {
+                    Color.appAccentColor.ignoresSafeArea()
+                }
+
+                EntryRowView(
+                    entry: entry,
+                    type: type,
+                    onAddToPlanTapped: {
+                        print("Add to Plan button tapped in preview.")
+                    }
+                )
+                .padding()
+            }
+        }
+    }
+}

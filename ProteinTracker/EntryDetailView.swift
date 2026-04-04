@@ -5,28 +5,29 @@
 //  Created by drx on 2025/08/04.
 //
 
+import SwiftData
 import SwiftUI
 
 struct EntryDetailView: View {
-    
-    @Binding var entry: ProteinEntry
-    @EnvironmentObject var viewModel: ProteinDataViewModel
-    @Environment(\.dismiss) var dismiss
-    
-    @State var proteinAmount: String = ""
-    @State var foodName: String = ""
-    @State var description: String = ""
-    @State var isEditing: Bool = false
-    
+    let entry: ProteinEntry
+
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var proteinAmount: String = ""
+    @State private var foodName: String = ""
+    @State private var description: String = ""
+    @State private var isEditing = false
     @State private var showDeleteConfirmation = false
-    
-    var isDataValid: Bool {
-        if let amount = Double(proteinAmount) {
-            return amount >= 0
+
+    private var isDataValid: Bool {
+        guard let amount = Double(proteinAmount) else {
+            return false
         }
-        return false
+
+        return amount >= 0
     }
-        
+
     var body: some View {
         VStack(spacing: 24) {
             ZStack {
@@ -34,43 +35,49 @@ struct EntryDetailView: View {
                     .fill(Color.appCardBackgroundColor)
                     .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
                     .frame(width: 120, height: 120)
-                
+
                 Text(entry.emojiImage)
                     .font(.system(size: 80))
             }
-            
-            // 2. Main Content Card
+            .accessibilityHidden(true)
+
             VStack(alignment: .leading, spacing: 20) {
                 if isEditing {
-                    // --- Editing Mode ---
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Protein Amount")
+                        Text(String(localized: "entryDetail.proteinAmount"))
                             .font(.subheadline)
                             .foregroundColor(.appSecondaryTextColor)
-                        TextField ("Protein (grams)", text: $proteinAmount)
+
+                        TextField(String(localized: "entryDetail.proteinPlaceholder"), text: $proteinAmount)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(.roundedBorder)
-                                                                        
-                        Text("Food Name")
+                            .accessibilityLabel(String(localized: "entryDetail.proteinAmount"))
+
+                        Text(String(localized: "entryDetail.foodName"))
                             .font(.subheadline)
                             .foregroundColor(.appSecondaryTextColor)
-                        TextField ("Name (e.g., Whey Protein Powder)", text: $foodName)
+
+                        TextField(String(localized: "entryDetail.foodNamePlaceholder"), text: $foodName)
                             .textFieldStyle(.roundedBorder)
-                        
-                        Text("Description")
+                            .accessibilityLabel(String(localized: "entryDetail.foodName"))
+
+                        Text(String(localized: "entryDetail.description"))
                             .font(.subheadline)
                             .foregroundColor(.appSecondaryTextColor)
-                        
+
                         ZStack(alignment: .topLeading) {
                             if description.isEmpty {
-                                Text("What's about this food...")
+                                Text(String(localized: "entryDetail.descriptionPlaceholder"))
                                     .foregroundColor(.appSecondaryTextColor.opacity(0.5))
                                     .padding(.top, 8)
                                     .padding(.leading, 5)
+                                    .accessibilityHidden(true)
                             }
+
                             TextEditor(text: $description)
                                 .scrollContentBackground(.hidden)
                                 .background(Color.clear)
+                                .accessibilityLabel(String(localized: "entryDetail.description"))
                         }
                         .frame(minHeight: 100)
                         .padding(4)
@@ -84,22 +91,22 @@ struct EntryDetailView: View {
                         )
                     }
                 } else {
-                    // --- Viewing Mode ---
-                    detailRow(item: "Protein Amount", is: "\(String(format: "%.1f", entry.proteinAmount)) Grams")
-                    Divider() // Add separators for clarity
-                    detailRow(item: "Food Name", is: entry.foodName)
+                    detailRow(
+                        item: String(localized: "entryDetail.proteinAmount"),
+                        is: String(localized: "entryDetail.proteinGrams.\(String(format: "%.1f", entry.proteinAmount))")
+                    )
                     Divider()
-                    detailRow(item: "Description", is: entry.description)
+                    detailRow(item: String(localized: "entryDetail.foodName"), is: entry.foodName)
                     Divider()
-                    // Manually editing time is forbidden
-                    
-                    if entry.isPlan {
-                        detailRow(item: "Scheduled For", is: entry.timeStamp.formattedRelativeString())
+                    detailRow(item: String(localized: "entryDetail.description"), is: entry.entryDescription)
+                    Divider()
 
+                    if entry.isPlan {
+                        detailRow(item: String(localized: "entryDetail.scheduledFor"), is: entry.timeStamp.formattedRelativeString())
                     } else if entry.isHistory {
-                        detailRow(item: "Consumed At", is: entry.timeStamp.formattedRelativeString())
+                        detailRow(item: String(localized: "entryDetail.consumedAt"), is: entry.timeStamp.formattedRelativeString())
                     } else {
-                        detailRow(item: "Created At", is: entry.timeStamp.formattedRelativeString())
+                        detailRow(item: String(localized: "entryDetail.createdAt"), is: entry.timeStamp.formattedRelativeString())
                     }
                 }
             }
@@ -110,26 +117,36 @@ struct EntryDetailView: View {
                     .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
             )
             .padding(.horizontal)
-            
+
             Spacer()
-                  
+
             VStack {
                 if isEditing {
-                    Button("Done") {
-                        guard let amount = Double(proteinAmount), amount >= 0 else {return}
+                    Button(String(localized: "entryDetail.done")) {
+                        guard let amount = Double(proteinAmount), amount >= 0 else {
+                            return
+                        }
+
                         entry.proteinAmount = amount
                         entry.foodName = foodName
-                        entry.description = description
-                        withAnimation { isEditing = false }
+                        entry.entryDescription = description
+                        ProteinDataStore.saveIfNeeded(modelContext)
+
+                        withAnimation {
+                            isEditing = false
+                        }
                     }
                     .buttonStyle(.bigAction(isEnabled: isDataValid))
                     .disabled(!isDataValid)
                 } else {
-                    Button("Edit") {
+                    Button(String(localized: "entryDetail.edit")) {
                         proteinAmount = String(format: "%.1f", entry.proteinAmount)
                         foodName = entry.foodName
-                        description = entry.description
-                        withAnimation { isEditing = true }
+                        description = entry.entryDescription
+
+                        withAnimation {
+                            isEditing = true
+                        }
                     }
                     .buttonStyle(.bigAction())
                 }
@@ -142,40 +159,43 @@ struct EntryDetailView: View {
         .toolbar {
             if isEditing {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        withAnimation { isEditing = false }
+                    Button(String(localized: "common.cancel")) {
+                        withAnimation {
+                            isEditing = false
+                        }
                     }
                 }
             }
-            
+
             ToolbarItem(placement: .destructiveAction) {
                 Button(role: .destructive) {
                     showDeleteConfirmation = true
                 } label: {
                     Image(systemName: "trash")
                 }
+                .accessibilityLabel(String(localized: "accessibility.deleteEntry"))
             }
         }
         .navigationBarBackButtonHidden(isEditing)
-        .alert("Delete Entry?", isPresented: $showDeleteConfirmation) {
-            Button("Delete", role: .destructive) {
-                viewModel.deleteEntry(withId: entry.id)
+        .alert(String(localized: "entryDetail.deleteEntry"), isPresented: $showDeleteConfirmation) {
+            Button(String(localized: "common.delete"), role: .destructive) {
+                ProteinDataStore.delete(entry, in: modelContext)
                 dismiss()
             }
-            Button("Cancel", role: .cancel) {}
+
+            Button(String(localized: "common.cancel"), role: .cancel) {}
         } message: {
-            Text("This action cannot be undone.")
+            Text(String(localized: "entryDetail.deleteConfirmation"))
         }
     }
-        
-    // Helper Methods
+
     @ViewBuilder
     private func detailRow(item: String, is itemDetail: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(item)
                 .font(.subheadline)
-                .foregroundColor(.appSecondaryTextColor) // Label is secondary
-            
+                .foregroundColor(.appSecondaryTextColor)
+
             Text(itemDetail)
                 .font(.headline)
                 .foregroundColor(.appPrimaryTextColor)
@@ -184,31 +204,19 @@ struct EntryDetailView: View {
     }
 }
 
-
 #Preview {
-    let viewModel = ProteinDataViewModel()
+    PreviewEntryDetailView()
+        .modelContainer(ProteinDataStore.previewContainer())
+}
 
-    struct PreviewWrapper: View {
+private struct PreviewEntryDetailView: View {
+    @Query private var entries: [ProteinEntry]
 
-        private let initialEntry: ProteinEntry
-        @State private var entry: ProteinEntry
-        
-        init(entry: ProteinEntry) {
-            self.initialEntry = entry
-            _entry = State(initialValue: entry)
-        }
-        
-        var body: some View {
+    var body: some View {
+        if let entry = entries.first {
             NavigationView {
-                EntryDetailView(entry: $entry)
+                EntryDetailView(entry: entry)
             }
         }
     }
-    
-    return PreviewWrapper(entry: viewModel.entries[2])
-        .environmentObject(viewModel)
 }
-
-
-
-

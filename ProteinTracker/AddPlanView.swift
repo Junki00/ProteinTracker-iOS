@@ -5,13 +5,14 @@
 //  Created by drx on 2025/09/21.
 //
 
+import SwiftData
 import SwiftUI
 
 struct AddPlanView: View {
     let entry: ProteinEntry
     
     @State private var selectedDate: Date = Date()
-    @EnvironmentObject var viewModel: ProteinDataViewModel
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -28,6 +29,7 @@ struct AddPlanView: View {
                             Text(entry.emojiImage)
                                 .font(.system(size: 80))
                                 .padding(.top, 10)
+                                .accessibilityHidden(true)
                             
                             VStack(spacing: 8) {
                                 Text(entry.foodName)
@@ -36,7 +38,7 @@ struct AddPlanView: View {
                                     .multilineTextAlignment(.center)
                                     .foregroundColor(.appPrimaryTextColor)
                                 
-                                Text("\(entry.proteinAmount, specifier: "%.1f") Grams Protein")
+                                Text(String(localized: "addPlan.gramsProtein.\(String(format: "%.1f", entry.proteinAmount))"))
                                     .font(.headline)
                                     .foregroundColor(.appPrimaryColor)
                             }
@@ -47,12 +49,14 @@ struct AddPlanView: View {
                             HStack {
                                 Image(systemName: "calendar")
                                     .foregroundColor(.appSecondaryTextColor)
-                                Text("Eat at")
+                                    .accessibilityHidden(true)
+                                Text(String(localized: "addPlan.eatAt"))
                                     .foregroundColor(.appPrimaryTextColor)
                                     .bold()
                                 Spacer()
                                 DatePicker("", selection: $selectedDate, displayedComponents: [.hourAndMinute, .date])
                                     .labelsHidden()
+                                    .accessibilityLabel(String(localized: "accessibility.planDate"))
                             }
                             .padding(.top, 8)
                         }
@@ -71,17 +75,18 @@ struct AddPlanView: View {
                             let generator = UINotificationFeedbackGenerator()
                             generator.notificationOccurred(.success)
                             
-                            viewModel.addPlanEntry(from: entry, on: selectedDate)
+                            ProteinDataStore.addPlanEntry(from: entry, on: selectedDate, in: modelContext)
                             withAnimation {
                                 dismiss()
                             }
                         }) {
                             HStack {
                                 Image(systemName: "plus.circle.fill")
-                                Text("Add to Plan")
+                                Text(String(localized: "addPlan.addToPlan"))
                             }
                         }
                         .buttonStyle(.bigAction())
+                        .accessibilityLabel(String(localized: "accessibility.confirmAddToPlan.\(entry.foodName)"))
                         .padding(.horizontal)
                         .padding(.bottom, 10)
                     }
@@ -89,7 +94,7 @@ struct AddPlanView: View {
                 }
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Cancel") {
+                        Button(String(localized: "common.cancel")) {
                             dismiss()
                         }
                         .foregroundColor(.appSecondaryTextColor)
@@ -100,5 +105,16 @@ struct AddPlanView: View {
 }
 
 #Preview {
-    AddPlanView(entry: ProteinDataViewModel().entries[2])
+    PreviewAddPlanView()
+        .modelContainer(ProteinDataStore.previewContainer())
+}
+
+private struct PreviewAddPlanView: View {
+    @Query private var entries: [ProteinEntry]
+
+    var body: some View {
+        if let entry = entries.first {
+            AddPlanView(entry: entry)
+        }
+    }
 }

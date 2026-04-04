@@ -5,11 +5,11 @@
 //  Created by drx on 2025/07/21.
 //
 
+import SwiftData
 import SwiftUI
 
 struct AddEntryModalView: View {
-    
-    @EnvironmentObject var viewModel: ProteinDataViewModel
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) var dismiss
     
     var date: Date
@@ -42,7 +42,7 @@ struct AddEntryModalView: View {
                         Button (action: {
                             dismiss()
                         }) {
-                            Text("Cancel")
+                            Text(String(localized: "addEntry.cancel"))
                         }
                         Spacer()
                     }
@@ -68,6 +68,8 @@ struct AddEntryModalView: View {
                         .background(Color.clear) // No background box
                         .tint(Color.appPrimaryColor) // Cursor color
                         .focused($isInputFocused)
+                        .accessibilityLabel(String(localized: "accessibility.proteinInput"))
+                        .accessibilityValue(proteinAmount.isEmpty ? String(localized: "accessibility.empty") : "\(proteinAmount) \(String(localized: "addEntry.grams"))")
                         .toolbar {
                             ToolbarItemGroup(placement: .keyboard) {
                                 Button(action: {
@@ -76,13 +78,15 @@ struct AddEntryModalView: View {
                                     generator.notificationOccurred(.success)
                                     proteinAmount = ""
                                 }) {
-                                    Text("Add Next")
+                                    Text(String(localized: "addEntry.addNext"))
                                         .font(.headline)
                                         .bold()
                                         .foregroundColor(isFormValid ? .appPrimaryColor : .gray)
                                             .bold()
                                 }
                                 .disabled(!isFormValid)
+                                .accessibilityLabel(String(localized: "addEntry.addNext"))
+                                .accessibilityHint(String(localized: "accessibility.addNextHint"))
                               
                                 Spacer()
                                 
@@ -92,13 +96,15 @@ struct AddEntryModalView: View {
                                     generator.notificationOccurred(.success)
                                     dismiss()
                                 }) {
-                                    Text("Done")
+                                    Text(String(localized: "addEntry.done"))
                                         .font(.headline)
                                         .bold()
                                         .foregroundColor(isFormValid ? .appPrimaryColor : .gray)
                                             .bold()
                                 }
                                 .disabled(!isFormValid)
+                                .accessibilityLabel(String(localized: "addEntry.done"))
+                                .accessibilityHint(String(localized: "accessibility.doneHint"))
                             }
                         }
                         .onChange(of: proteinAmount) {
@@ -106,14 +112,14 @@ struct AddEntryModalView: View {
                             generator.impactOccurred(intensity: 0.5)
                         }
                     
-                    Text("Grams")
+                    Text(String(localized: "addEntry.grams"))
                         .bold()
                         .font(.title)
                         .foregroundColor(.appPrimaryTextColor)
                     
                     Spacer().frame(height: 40)
 
-                    Text("Default name will be used. Tap entry to edit details later.")
+                    Text(String(localized: "addEntry.defaultNameHint"))
                         .font(.body)
                         .foregroundColor(.appSecondaryTextColor)
                     Spacer()
@@ -141,10 +147,16 @@ struct AddEntryModalView: View {
             } else {
                 let formatter = DateFormatter()
                 formatter.dateFormat = "HH:mm"
-                finalName = "Quick Add at \(formatter.string(from: Date()))"
+                finalName = String(localized: "addEntry.quickAdd.\(formatter.string(from: Date()))")
             }
             
-            viewModel.addHistoryEntry(proteinAmount: amount, foodName: finalName, description: "Click to edit description.")
+            ProteinDataStore.addHistoryEntry(
+                proteinAmount: amount,
+                foodName: finalName,
+                description: String(localized: "addEntry.defaultDescription"),
+                date: date,
+                in: modelContext
+            )
             
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
@@ -156,5 +168,5 @@ struct AddEntryModalView: View {
 
 #Preview {
     AddEntryModalView(date: Date())
-        .environmentObject(ProteinDataViewModel())
+        .modelContainer(ProteinDataStore.previewContainer())
 }

@@ -8,33 +8,31 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var viewModel = ProteinDataViewModel()
-    
     var body: some View {
         TabView {
             TodayView()
                 .tabItem {
                     Image(systemName: "doc.text.image")
-                    Text("Today")
+                    Text(String(localized: "tab.today"))
                 }
             
             FavoritesView()
                 .tabItem {
                     Image(systemName: "star")
-                    Text("Favorites")
+                    Text(String(localized: "tab.favorites"))
                 }
             
             StatsView()
                 .tabItem {
                     Image(systemName: "chart.bar.xaxis")
-                    Text("Stats")
+                    Text(String(localized: "tab.stats"))
                 }
         }
         .tint(Color.appPrimaryColor)
-        .environmentObject(viewModel)
     }
 }
 
 #Preview {
     ContentView()
+        .modelContainer(ProteinDataStore.previewContainer())
 }

@@ -5,57 +5,67 @@
 //  Created by drx on 2025/07/21.
 //
 
-import SwiftUI
 import Charts
+import SwiftData
+import SwiftUI
 
 struct StatsView: View {
-    @EnvironmentObject var viewModel: ProteinDataViewModel
+    @Query private var entries: [ProteinEntry]
+    @Query private var userProfiles: [UserProfile]
     @State private var selectedDate: Date?
-    
-    var body: some View {
-        let weeklyData = viewModel.getWeeklyProteinData()
 
+    private var weeklyData: [DailyProteinData] {
+        ProteinDataStore.weeklyProteinData(entries: entries)
+    }
+
+    private var userProfile: UserProfile? {
+        userProfiles.first
+    }
+
+    var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                
-                // Chart Section (Extracted View)
                 ProteinTrendChart(
                     weeklyData: weeklyData,
-                    dailyGoal: viewModel.userProfile.dailyGoal,
+                    dailyGoal: userProfile?.dailyGoal ?? 0,
                     selectedDate: $selectedDate
                 )
-                .navigationTitle("Weekly Statistics")
-                
-                // Detail Header Section
+                .navigationTitle(String(localized: "stats.weeklyStatistics"))
+
                 if let selectedDate {
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text("Details for \(selectedDate, format: .dateTime.weekday(.wide).day().month(.wide)),")
+                        Text(String(localized: "stats.detailsFor.\(selectedDate.formatted(.dateTime.weekday(.wide).day().month(.wide)))"))
                             .font(.caption)
                             .foregroundColor(.appSecondaryTextColor)
-                        
-                        Text("\(viewModel.totalProtein(on: selectedDate), specifier: "%.1f")g")
+
+                        Text("\(ProteinDataStore.totalProtein(on: selectedDate, entries: entries), specifier: "%.1f")g")
                             .font(.caption)
                             .bold()
                             .foregroundColor(.appPrimaryColor)
-                        
-                        Text("consumed.")
+
+                        Text(String(localized: "stats.consumed"))
                             .font(.caption)
                             .foregroundColor(.appSecondaryTextColor)
-                        
+
                         Spacer()
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 10)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(
+                        String(
+                            localized: "accessibility.statsDetail.\(selectedDate.formatted(.dateTime.weekday(.wide).day().month(.wide))).\(String(format: "%.1f", ProteinDataStore.totalProtein(on: selectedDate, entries: entries)))"
+                        )
+                    )
                 }
-                
-                // Scrollable List Section
+
                 ScrollView {
                     if let selectedDate {
                         EntryCardView(type: .history, date: selectedDate)
                             .padding()
                     } else {
                         VStack {
-                            Text("Tap on a bar to see daily details.")
+                            Text(String(localized: "stats.tapBarHint"))
                                 .font(.caption)
                                 .foregroundColor(.appSecondaryText)
                                 .padding()
@@ -65,52 +75,38 @@ struct StatsView: View {
                     }
                 }
             }
-            .background(Color.appBackgroundColor) // Whole screen background
+            .background(Color.appBackgroundColor)
         }
     }
 }
-
-// MARK: - Subviews
 
 private struct ProteinTrendChart: View {
     let weeklyData: [DailyProteinData]
     let dailyGoal: Double
     @Binding var selectedDate: Date?
-    
+
     var body: some View {
         Chart {
             ForEach(weeklyData) { dataPoint in
-                
-                // Check if this bar is selected
                 let isSelected = selectedDate.map {
                     Calendar.current.isDate(dataPoint.date, inSameDayAs: $0)
                 } ?? false
-                
-                if isSelected {
-                    BarMark(
-                        x: .value("Date", dataPoint.date, unit: .day),
-                        y: .value("Protein", dataPoint.totalProtein)
-                    )
-                    .foregroundStyle(Color.appPrimaryColor)
-                } else {
-                    BarMark(
-                        x: .value("Date", dataPoint.date, unit: .day),
-                        y: .value("Protein", dataPoint.totalProtein)
-                    )
-                    .foregroundStyle(Color.appAccentColor)
-                }
+
+                BarMark(
+                    x: .value("Date", dataPoint.date, unit: .day),
+                    y: .value("Protein", dataPoint.totalProtein)
+                )
+                .foregroundStyle(isSelected ? Color.appPrimaryColor : Color.appAccentColor)
             }
         }
-        .chartYScale(domain: 0...(dailyGoal * 4 / 3))
+        .chartYScale(domain: 0...(max(dailyGoal, 1) * 4 / 3))
         .chartYAxis {
-            // 1. Default Axis Marks
             AxisMarks()
-            
-            // 2. Custom Goal Line and Label
+
             AxisMarks(values: [dailyGoal]) { _ in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 1, dash: [5]))
                     .foregroundStyle(Color.appPrimary)
-                
+
                 AxisValueLabel {
                     Text("\(dailyGoal, specifier: "%.0f")")
                         .foregroundStyle(Color.appPrimary)
@@ -119,7 +115,7 @@ private struct ProteinTrendChart: View {
             }
         }
         .chartOverlay { proxy in
-            GeometryReader { geometry in
+            GeometryReader { _ in
                 Rectangle()
                     .fill(Color.clear)
                     .contentShape(Rectangle())
@@ -127,14 +123,12 @@ private struct ProteinTrendChart: View {
                         SpatialTapGesture()
                             .onEnded { value in
                                 if let date = proxy.value(atX: value.location.x, as: Date.self) {
-                                    // Find the closest data point
                                     let selectedDay = weeklyData.min(by: {
                                         abs($0.date.distance(to: date)) < abs($1.date.distance(to: date))
                                     })
-                                    
-                                    self.selectedDate = selectedDay?.date
-                                    
-                                    // Haptic Feedback
+
+                                    selectedDate = selectedDay?.date
+
                                     if let dayData = selectedDay {
                                         if dayData.totalProtein >= dailyGoal {
                                             UINotificationFeedbackGenerator().notificationOccurred(.success)
@@ -149,13 +143,17 @@ private struct ProteinTrendChart: View {
         }
         .frame(height: 250)
         .padding()
-        .background(Color.appCardBackgroundColor) // Optional: Card background for chart
+        .background(Color.appCardBackgroundColor)
         .cornerRadius(28)
         .padding()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "accessibility.weeklyChart"))
+        .accessibilityValue(weeklyData.map { "\($0.date.formatted(.dateTime.weekday(.abbreviated))): \(String(format: "%.0f", $0.totalProtein))\(String(localized: "addEntry.grams"))" }.joined(separator: ", "))
+        .accessibilityHint(String(localized: "accessibility.chartHint"))
     }
 }
 
 #Preview {
     StatsView()
-        .environmentObject(ProteinDataViewModel())
+        .modelContainer(ProteinDataStore.previewContainer())
 }
