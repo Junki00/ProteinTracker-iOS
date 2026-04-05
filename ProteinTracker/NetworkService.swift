@@ -45,7 +45,12 @@ struct Nutriments: Codable {
     }
 }
 
-struct NetworkService {
+/// Abstraction for food search functionality, enabling dependency injection and testing.
+protocol FoodSearchService: Sendable {
+    func searchFoodInfo(searchName: String) async throws -> [Product]
+}
+
+struct NetworkService: FoodSearchService {
     private func createURL(for searchTerm: String) throws -> URL {
         let baseURL = "https://world.openfoodfacts.org/cgi/search.pl"
         let trimmedSearchTerm = searchTerm.trimmingCharacters(in: .whitespacesAndNewlines)

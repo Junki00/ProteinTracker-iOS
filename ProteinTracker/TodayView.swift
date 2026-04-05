@@ -13,14 +13,15 @@ struct TodayView: View {
     @Query private var entries: [ProteinEntry]
     @Query private var userProfiles: [UserProfile]
 
+    @State private var viewModel: TodayViewModel
     @State private var isShowingAddSheet = false
     @State private var isShowingList = true
     @State private var searchTerm = ""
-    @State private var searchResults: [Product] = []
-    @State private var isSearching = false
     @State private var selectedProduct: Product?
-    @State private var searchError: Error?
-    @State private var isShowingErrorAlert = false
+
+    init(viewModel: TodayViewModel = TodayViewModel()) {
+        _viewModel = State(initialValue: viewModel)
+    }
 
     private let today = Date()
 
@@ -46,7 +47,7 @@ struct TodayView: View {
                 .searchable(text: $searchTerm, prompt: String(localized: "today.searchPrompt"))
                 .onSubmit(of: .search) {
                     Task {
-                        await performSearch()
+                        await viewModel.performSearch(for: searchTerm)
                     }
                 }
                 .sheet(isPresented: $isShowingAddSheet) {
@@ -55,13 +56,13 @@ struct TodayView: View {
                 .sheet(item: $selectedProduct) { product in
                     AddEntryModalView(product: product, date: today)
                 }
-                .alert(String(localized: "today.searchFailed"), isPresented: $isShowingErrorAlert, actions: {
+                .alert(String(localized: "today.searchFailed"), isPresented: $viewModel.isShowingErrorAlert, actions: {
                     Button(String(localized: "common.ok")) {}
                 }, message: {
-                    if let networkError = searchError as? NetworkError {
+                    if let networkError = viewModel.searchError as? NetworkError {
                         Text(networkError.userFriendlyDescription)
                     } else {
-                        Text(searchError?.localizedDescription ?? String(localized: "today.unknownError"))
+                        Text(viewModel.searchError?.localizedDescription ?? String(localized: "today.unknownError"))
                     }
                 })
         }
@@ -92,16 +93,6 @@ struct TodayView: View {
             fabButton
         }
         .navigationTitle(String(localized: "tab.today"))
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: UserProfileView()) {
-                    Image(systemName: "person.crop.circle")
-                        .font(.title3)
-                        .foregroundColor(.appSecondaryTextColor)
-                }
-                .accessibilityLabel(String(localized: "accessibility.userProfile"))
-            }
-        }
         .background(Color.appBackgroundColor)
     }
 
@@ -109,11 +100,11 @@ struct TodayView: View {
         ZStack {
             Color.appBackgroundColor.ignoresSafeArea()
 
-            if isSearching {
+            if viewModel.isSearching {
                 ProgressView()
                     .accessibilityLabel(String(localized: "accessibility.searching"))
             } else {
-                List(searchResults) { product in
+                List(viewModel.searchResults) { product in
                     SearchResultRowView(product: product)
                         .onTapGesture {
                             selectedProduct = product
@@ -260,23 +251,6 @@ struct TodayView: View {
         .padding()
     }
 
-    @MainActor
-    private func performSearch() async {
-        isSearching = true
-
-        defer {
-            isSearching = false
-        }
-
-        do {
-            let service = NetworkService()
-            let products = try await service.searchFoodInfo(searchName: searchTerm)
-            searchResults = products
-        } catch {
-            searchError = error
-            isShowingErrorAlert = true
-        }
-    }
 }
 
 private struct SearchResultRowView: View {
