@@ -8,22 +8,6 @@
 import SwiftUI
 
 extension Color {
-    // Old
-//    // MARK: - Brand Colors
-//    static let appPrimaryColorTemp = Color(hex: "#EB5978")
-//    static let appSecondary = Color(hex: "#FBF0F2")
-//    static let appBackgroundColorTemp = Color(hex: "#FFFFFF")
-//    
-//    // MARK: - Text Colors
-//    static let primaryText = Color(hex: "#2C2C2E")
-//    static let secondaryText = Color(hex: "#676769")
-//    static let shallowText = Color(hex: "#FFFFFF")
-//    
-//    // MARK: - Apple Colors
-//    static let secondaryBackground = Color(hex: "#F2F2F7")
-
-    
-    // New
     // MARK: - Brand Colors
     /// 主色调：按钮、图标、进度条、重点文字
     static let appPrimaryColor = Color("AppPrimaryColor")
@@ -47,12 +31,6 @@ extension Color {
     
     /// 二级文字：副标题、说明、单位
     static let appSecondaryTextColor = Color("AppSecondaryText")
-    
-    
-    
-    
-    
-    
     
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

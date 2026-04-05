@@ -67,7 +67,7 @@ struct StatsView: View {
                         VStack {
                             Text(String(localized: "stats.tapBarHint"))
                                 .font(.caption)
-                                .foregroundColor(.appSecondaryText)
+                                .foregroundColor(.appSecondaryTextColor)
                                 .padding()
                         }
                         .frame(minHeight: 200)
@@ -105,11 +105,11 @@ private struct ProteinTrendChart: View {
 
             AxisMarks(values: [dailyGoal]) { _ in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 1, dash: [5]))
-                    .foregroundStyle(Color.appPrimary)
+                    .foregroundStyle(Color.appPrimaryColor)
 
                 AxisValueLabel {
                     Text("\(dailyGoal, specifier: "%.0f")")
-                        .foregroundStyle(Color.appPrimary)
+                        .foregroundStyle(Color.appPrimaryColor)
                         .font(.caption.bold())
                 }
             }

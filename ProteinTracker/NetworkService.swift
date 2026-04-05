@@ -46,7 +46,7 @@ struct Nutriments: Codable {
 }
 
 struct NetworkService {
-    private func createURL (for searchTerm: String) throws -> URL {
+    private func createURL(for searchTerm: String) throws -> URL {
         let baseURL = "https://world.openfoodfacts.org/cgi/search.pl"
         let trimmedSearchTerm = searchTerm.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -79,25 +79,6 @@ struct NetworkService {
         
         return searchResponse.products
     }
-    
-    
-    // temporary
-    func testURLCreation() {
-        do {
-            let url = try createURL(for: " chicken breast ")
-            print("✅ Successfully created a URL: \(url)")
-        } catch let error as NetworkError {
-            switch error {
-            case .invalidURL:
-                print("❌ Error: The generated URL was invalid.")
-            case .invalidSearchTerm:
-                print("❌ Error: The search term could not be encoded.")
-            case .requestFailed:
-                print("❌ Error: Request Failed")
-            }
-        } catch {
-            print("An unexpected error occurred: \(error)")
-        }
-    }
 }
+
 

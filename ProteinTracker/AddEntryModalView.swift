@@ -82,7 +82,6 @@ struct AddEntryModalView: View {
                                         .font(.headline)
                                         .bold()
                                         .foregroundColor(isFormValid ? .appPrimaryColor : .gray)
-                                            .bold()
                                 }
                                 .disabled(!isFormValid)
                                 .accessibilityLabel(String(localized: "addEntry.addNext"))
@@ -100,7 +99,6 @@ struct AddEntryModalView: View {
                                         .font(.headline)
                                         .bold()
                                         .foregroundColor(isFormValid ? .appPrimaryColor : .gray)
-                                            .bold()
                                 }
                                 .disabled(!isFormValid)
                                 .accessibilityLabel(String(localized: "addEntry.done"))
@@ -137,10 +135,6 @@ struct AddEntryModalView: View {
 
     private func saveEntry() {
         if let amount = Double(proteinAmount) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "HH:mm"
-            //let timeString = formatter.string(from: Date())
-            
             let finalName: String
             if !foodName.isEmpty {
                 finalName = foodName

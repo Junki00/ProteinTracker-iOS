@@ -29,7 +29,7 @@ struct BigButtonStyle: ButtonStyle {
 }
 
 extension ButtonStyle where Self == BigButtonStyle {
-    static func bigAction(isEnabled: Bool = true, color: Color = .appPrimary) -> BigButtonStyle {
+    static func bigAction(isEnabled: Bool = true, color: Color = .appPrimaryColor) -> BigButtonStyle {
         BigButtonStyle(backgroundColor: color, isEnabled: isEnabled)
     }
 }

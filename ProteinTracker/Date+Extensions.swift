@@ -16,8 +16,8 @@ extension Date {
             formatter.dateFormat = "HH:mm" // e.g., "15:30"
             return "Today, \(formatter.string(from: self))" // e.g., "15:30, Today"
         } else if calendar.isDateInYesterday(self) {
-            formatter.dateFormat = "hh:mm"
-            return "Yestoday, \(formatter.string(from: self))" // e.g., "15:30, Yesterday"
+            formatter.dateFormat = "HH:mm"
+            return "Yesterday, \(formatter.string(from: self))" // e.g., "Yesterday, 15:30"
         } else {
             formatter.dateFormat = "MMM d, HH:mm"
             return formatter.string(from: self) // e.g., "Jul 28, 15:30"

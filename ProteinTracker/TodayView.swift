@@ -273,7 +273,6 @@ struct TodayView: View {
             let products = try await service.searchFoodInfo(searchName: searchTerm)
             searchResults = products
         } catch {
-            print("❌ Search failed: \(error)")
             searchError = error
             isShowingErrorAlert = true
         }

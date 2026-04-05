@@ -87,8 +87,7 @@ struct EntryRowView: View {
                             ProteinDataStore.addFavoriteEntry(from: entry, in: modelContext)
                         }
                     ) {
-                        Image(systemName: ("star"))
-                            //.font(.system(size: 25))
+                        Image(systemName: "star")
                             .foregroundColor(.appPrimaryColor)
                     }
                     .buttonStyle(.borderless)
@@ -106,7 +105,7 @@ struct EntryRowView: View {
                             ProteinDataStore.revertToPlan(entry, in: modelContext)
                         }
                     ) {
-                        Image(systemName: ("checkmark.circle.fill"))
+                        Image(systemName: "checkmark.circle.fill")
                     }
                     .buttonStyle(.borderless)
                     .accessibilityLabel(String(localized: "accessibility.revertToPlan"))
@@ -120,7 +119,7 @@ struct EntryRowView: View {
                             ProteinDataStore.completePlan(entry, in: modelContext)
                         }
                     ) {
-                        Image(systemName: ("checkmark.circle"))
+                        Image(systemName: "checkmark.circle")
                     }
                     .buttonStyle(.borderless)
                     .accessibilityLabel(String(localized: "accessibility.completePlan"))
