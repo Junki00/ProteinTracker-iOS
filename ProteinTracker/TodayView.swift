@@ -45,10 +45,11 @@ struct TodayView: View {
         NavigationStack {
             mainContent
                 .searchable(text: $searchTerm, prompt: String(localized: "today.searchPrompt"))
+                .onChange(of: searchTerm) { _, newValue in
+                    viewModel.performSearch(for: newValue)
+                }
                 .onSubmit(of: .search) {
-                    Task {
-                        await viewModel.performSearch(for: searchTerm)
-                    }
+                    viewModel.performSearch(for: searchTerm)
                 }
                 .sheet(isPresented: $isShowingAddSheet) {
                     AddEntryModalView(date: today)
@@ -59,11 +60,7 @@ struct TodayView: View {
                 .alert(String(localized: "today.searchFailed"), isPresented: $viewModel.isShowingErrorAlert, actions: {
                     Button(String(localized: "common.ok")) {}
                 }, message: {
-                    if let networkError = viewModel.searchError as? NetworkError {
-                        Text(networkError.userFriendlyDescription)
-                    } else {
-                        Text(viewModel.searchError?.localizedDescription ?? String(localized: "today.unknownError"))
-                    }
+                    Text(viewModel.searchError?.localizedDescription ?? String(localized: "today.unknownError"))
                 })
         }
     }
