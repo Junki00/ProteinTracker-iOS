@@ -27,6 +27,12 @@ struct ContentView: View {
                     Image(systemName: "chart.bar.xaxis")
                     Text(String(localized: "tab.stats"))
                 }
+            
+            UserProfileView()
+                .tabItem {
+                    Image(systemName: "person.crop.circle")
+                    Text(String(localized: "tab.me"))
+                }
         }
         .tint(Color.appPrimaryColor)
     }

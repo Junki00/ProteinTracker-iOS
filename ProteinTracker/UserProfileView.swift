@@ -88,7 +88,6 @@ struct UserProfileView: View {
         }
         .background(Color.appBackgroundColor)
         .navigationTitle(String(localized: "profile.title"))
-        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             tempName = userProfile?.userName ?? "User"
             tempWeight = userProfile?.userWeight ?? 120
