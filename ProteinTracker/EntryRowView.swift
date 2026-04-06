@@ -89,10 +89,10 @@ extension View {
             .foregroundColor(.appSecondaryTextColor)
             .padding()
             .background(Color.appSubCardBackgroundColor)
-            .cornerRadius(12)
+            .cornerRadius(DS.Radius.row)
             .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: DS.Radius.row)
                     .stroke(
                         type == .favorite || isFavorite ?  Color.appPrimaryColor : Color.clear,
                         lineWidth: 2

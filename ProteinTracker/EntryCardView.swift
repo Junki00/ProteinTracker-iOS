@@ -34,7 +34,7 @@ struct EntryCardView: View {
                         Spacer()
                     }
                     .frame(maxWidth: .infinity, minHeight: Self.minimumCardHeight)
-                    .padding(.horizontal)
+                    .padding(.horizontal, DS.Spacing.m)
                 } else {
                     VStack(spacing: DS.Spacing.s) {
                         ForEach(displayedEntries) { entry in
@@ -49,7 +49,7 @@ struct EntryCardView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, minHeight: Self.minimumCardHeight, alignment: .top)
-                    .padding(.horizontal)
+                    .padding(.horizontal, DS.Spacing.m)
                 }
             } else {
                 if displayedEntries.isEmpty {
@@ -65,7 +65,7 @@ struct EntryCardView: View {
                         Spacer()
                     }
                     .frame(maxWidth: .infinity, minHeight: Self.minimumCardHeight)
-                    .padding(.horizontal)
+                    .padding(.horizontal, DS.Spacing.m)
                     .background(Color.appAccentColor)
                 } else {
                     VStack(spacing: DS.Spacing.s) {
@@ -81,13 +81,13 @@ struct EntryCardView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, minHeight: Self.minimumCardHeight, alignment: .top)
-                    .padding(.horizontal)
+                    .padding(.horizontal, DS.Spacing.m)
                 }
             }
         }
         .padding(.vertical)
         .background(
-            RoundedRectangle(cornerRadius: 28)
+            RoundedRectangle(cornerRadius: DS.Radius.card)
                 .fill(type == .history ? Color.appAccentColor : .appCardBackgroundColor)
         )
         .shadow(color: type == .history ? .clear : Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
