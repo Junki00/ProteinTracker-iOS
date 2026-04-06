@@ -9,8 +9,8 @@ import SwiftData
 import SwiftUI
 
 struct EntryCardView: View {
+    @Environment(\.modelContext) private var modelContext
     @Query private var entries: [ProteinEntry]
-    @State private var selectedEntry: ProteinEntry?
 
     let type: EntryType
     let date: Date
@@ -39,46 +39,15 @@ struct EntryCardView: View {
                             NavigationLink {
                                 EntryDetailView(entry: entry)
                             } label: {
-                                EntryRowView(entry: entry, type: .favorite, onAddToPlanTapped: { selectedEntry = entry })
+                                EntryRowView(entry: entry, type: .favorite)
+                            }
+                            .contextMenu {
+                                deleteButton(for: entry)
                             }
                         }
                     }
                     .padding(.horizontal)
                 }
-            } else if type == .plan {
-                VStack {
-                    HStack{
-                        Text(String(localized: "today.plan"))
-                            .font(.headline)
-                            .foregroundColor(.appPrimaryTextColor)
-                        Spacer()
-                    }
-                    .padding(.bottom, DS.Spacing.s)
-                    
-                    if displayedEntries.isEmpty {
-                        VStack(spacing: DS.Spacing.m) {
-                            Spacer()
-                            Text(String(localized: "entryCard.noPlans"))
-                                .multilineTextAlignment(.center)
-                                .foregroundColor(.appPrimaryColor)
-                                .font(.headline)
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 300)
-                    } else {
-                        VStack(spacing: DS.Spacing.s) {
-                            ForEach(displayedEntries) { entry in
-                                NavigationLink {
-                                    EntryDetailView(entry: entry)
-                                } label: {
-                                    EntryRowView(entry: entry, type: .plan)
-                                }
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal)
-   
             } else {
                 if displayedEntries.isEmpty {
                     VStack(spacing: DS.Spacing.m) {
@@ -90,10 +59,6 @@ struct EntryCardView: View {
                             .multilineTextAlignment(.center)
                             .foregroundColor(.appPrimaryColor)
                             .font(.headline)
-                        Text(String(localized: "entryCard.emptyHint"))
-                            .multilineTextAlignment(.center)
-                            .foregroundColor(.appSecondaryTextColor)
-                            .font(.subheadline)
                         Spacer()
                     }
                     .frame(maxWidth: .infinity, minHeight: 300)
@@ -107,6 +72,9 @@ struct EntryCardView: View {
                             } label: {
                                 EntryRowView(entry: entry, type: .history)
                             }
+                            .contextMenu {
+                                deleteButton(for: entry)
+                            }
                         }
                     }
                     .padding(.horizontal)
@@ -119,13 +87,20 @@ struct EntryCardView: View {
                 .fill(type == .history ? Color.appAccentColor : .appCardBackgroundColor)
         )
         .shadow(color: type == .history ? .clear : Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
-        .sheet(item: $selectedEntry) { selectedEntry in
-            AddPlanView(entry: selectedEntry)
+    }
+
+    private func deleteButton(for entry: ProteinEntry) -> some View {
+        Button(role: .destructive) {
+            withAnimation(DS.Animation.snappy) {
+                ProteinDataStore.delete(entry, in: modelContext)
+            }
+        } label: {
+            Label(String(localized: "common.delete"), systemImage: "trash")
         }
     }
 }
 
 #Preview {
-    EntryCardView(type: .plan, date: Date())
+    EntryCardView(type: .favorite, date: Date())
         .modelContainer(ProteinDataStore.previewContainer())
 }

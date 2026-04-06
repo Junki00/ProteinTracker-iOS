@@ -9,7 +9,6 @@ import SwiftData
 import SwiftUI
 
 struct TodayView: View {
-    @Environment(\.modelContext) private var modelContext
     @Query private var entries: [ProteinEntry]
     @Query private var userProfiles: [UserProfile]
 
@@ -81,7 +80,6 @@ struct TodayView: View {
                     headerSection
                     stillNeedCard
                     historyCard
-                    planCard
                     Spacer().frame(height: 100)
                 }
                 .padding(DS.Spacing.m)
@@ -114,14 +112,8 @@ struct TodayView: View {
 
     private var headerSection: some View {
         HStack {
-            HStack {
-                Text("🌍 \(today, format: .dateTime.weekday().month().day()), \(String(localized: "today.goodDay \(userProfile?.userName ?? "User")"))")
-                    .onTapGesture(count: 3) {
-                        DS.Haptics.success()
-                        ProteinDataStore.resetToMockData(in: modelContext)
-                    }
-            }
-            .font(.body)
+            Text("🌍 \(today, format: .dateTime.weekday().month().day()), \(String(localized: "today.goodDay \(userProfile?.userName ?? "User")"))")
+                .font(.body)
             Spacer()
         }
     }
@@ -216,10 +208,6 @@ struct TodayView: View {
         }
         .padding(isShowingList ? .top : .vertical)
         .background(RoundedRectangle(cornerRadius: 28).fill(Color.appAccentColor))
-    }
-
-    private var planCard: some View {
-        EntryCardView(type: .plan, date: today)
     }
 
     private var fabButton: some View {

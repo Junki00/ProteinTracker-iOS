@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 enum EntryType {
-    case history, plan, favorite
+    case history, favorite
 }
 
 @Model
@@ -20,17 +20,15 @@ final class ProteinEntry {
     var entryDescription: String
     var timeStamp: Date
     var isFavorite: Bool
-    var isPlan: Bool
     var isHistory: Bool
+    var customEmoji: String?
 
     var emojiImage: String {
-        if proteinAmount < 20 {
-            "😳"
-        } else if proteinAmount < 50 {
-            "🥰"
-        } else {
-            "🤩"
+        if let customEmoji, !customEmoji.isEmpty {
+            return customEmoji
         }
+        
+        return "🍽️"
     }
 
     init(
@@ -40,8 +38,8 @@ final class ProteinEntry {
         entryDescription: String,
         timeStamp: Date = Date(),
         isFavorite: Bool,
-        isPlan: Bool,
-        isHistory: Bool
+        isHistory: Bool,
+        customEmoji: String? = nil
     ) {
         self.id = id
         self.proteinAmount = proteinAmount
@@ -49,8 +47,8 @@ final class ProteinEntry {
         self.entryDescription = entryDescription
         self.timeStamp = timeStamp
         self.isFavorite = isFavorite
-        self.isPlan = isPlan
         self.isHistory = isHistory
+        self.customEmoji = customEmoji
     }
 }
 

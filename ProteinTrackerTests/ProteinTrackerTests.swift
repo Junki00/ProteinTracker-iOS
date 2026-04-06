@@ -35,7 +35,6 @@ struct ProteinTrackerTests {
                 entryDescription: "Breakfast",
                 timeStamp: today,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
             ),
             ProteinEntry(
@@ -44,17 +43,7 @@ struct ProteinTrackerTests {
                 entryDescription: "Lunch",
                 timeStamp: sameDayLater,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
-            ),
-            ProteinEntry(
-                proteinAmount: 20,
-                foodName: "Shake",
-                entryDescription: "Planned snack",
-                timeStamp: today,
-                isFavorite: false,
-                isPlan: true,
-                isHistory: false
             ),
             ProteinEntry(
                 proteinAmount: 50,
@@ -62,7 +51,6 @@ struct ProteinTrackerTests {
                 entryDescription: "Dinner tomorrow",
                 timeStamp: nextDay,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
             )
         ]
@@ -72,7 +60,7 @@ struct ProteinTrackerTests {
         #expect(result == 75)
     }
 
-    @Test func totalProtein_ignoresPlanEntriesAndEntriesFromOtherDays() {
+    @Test func totalProtein_ignoresEntriesFromOtherDays() {
         let calendar = Calendar(identifier: .gregorian)
         let today = calendar.date(from: DateComponents(year: 2025, month: 1, day: 15, hour: 12))!
         let nextDay = calendar.date(byAdding: .day, value: 1, to: today)!
@@ -84,17 +72,7 @@ struct ProteinTrackerTests {
                 entryDescription: "Lunch",
                 timeStamp: today,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
-            ),
-            ProteinEntry(
-                proteinAmount: 20,
-                foodName: "Protein Bar",
-                entryDescription: "Planned snack",
-                timeStamp: today,
-                isFavorite: false,
-                isPlan: true,
-                isHistory: false
             ),
             ProteinEntry(
                 proteinAmount: 50,
@@ -102,7 +80,6 @@ struct ProteinTrackerTests {
                 entryDescription: "Tomorrow dinner",
                 timeStamp: nextDay,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
             )
         ]
@@ -123,7 +100,6 @@ struct ProteinTrackerTests {
                 entryDescription: "Breakfast",
                 timeStamp: today,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
             )
         ]
@@ -144,7 +120,6 @@ struct ProteinTrackerTests {
                 entryDescription: "Breakfast",
                 timeStamp: today,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
             )
         ]
@@ -167,7 +142,6 @@ struct ProteinTrackerTests {
             entryDescription: "Breakfast",
             timeStamp: earlierToday,
             isFavorite: false,
-            isPlan: false,
             isHistory: true
         )
         let laterHistory = ProteinEntry(
@@ -176,28 +150,17 @@ struct ProteinTrackerTests {
             entryDescription: "Dinner",
             timeStamp: laterToday,
             isFavorite: false,
-            isPlan: false,
             isHistory: true
         )
 
         let entries = [
             earlierHistory,
             ProteinEntry(
-                proteinAmount: 20,
-                foodName: "Shake",
-                entryDescription: "Planned snack",
-                timeStamp: today,
-                isFavorite: false,
-                isPlan: true,
-                isHistory: false
-            ),
-            ProteinEntry(
                 proteinAmount: 30,
                 foodName: "Fish",
                 entryDescription: "Tomorrow lunch",
                 timeStamp: nextDay,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
             ),
             laterHistory
@@ -207,61 +170,6 @@ struct ProteinTrackerTests {
 
         #expect(result.count == 2)
         #expect(result.map(\.foodName) == ["Chicken", "Eggs"])
-    }
-
-    @Test func entries_planFiltersToSelectedDayAndSortsOldestFirst() {
-        let calendar = Calendar(identifier: .gregorian)
-        let today = calendar.date(from: DateComponents(year: 2025, month: 1, day: 15, hour: 12))!
-        let earlierToday = calendar.date(byAdding: .hour, value: 1, to: today)!
-        let laterToday = calendar.date(byAdding: .hour, value: 5, to: today)!
-        let previousDay = calendar.date(byAdding: .day, value: -1, to: today)!
-
-        let earlierPlan = ProteinEntry(
-            proteinAmount: 30,
-            foodName: "Lunch Plan",
-            entryDescription: "Lunch",
-            timeStamp: earlierToday,
-            isFavorite: false,
-            isPlan: true,
-            isHistory: false
-        )
-        let laterPlan = ProteinEntry(
-            proteinAmount: 50,
-            foodName: "Dinner Plan",
-            entryDescription: "Dinner",
-            timeStamp: laterToday,
-            isFavorite: false,
-            isPlan: true,
-            isHistory: false
-        )
-
-        let entries = [
-            ProteinEntry(
-                proteinAmount: 20,
-                foodName: "Breakfast Done",
-                entryDescription: "Breakfast",
-                timeStamp: today,
-                isFavorite: false,
-                isPlan: false,
-                isHistory: true
-            ),
-            laterPlan,
-            ProteinEntry(
-                proteinAmount: 35,
-                foodName: "Yesterday Plan",
-                entryDescription: "Dinner",
-                timeStamp: previousDay,
-                isFavorite: false,
-                isPlan: true,
-                isHistory: false
-            ),
-            earlierPlan
-        ]
-
-        let result = ProteinDataStore.entries(for: .plan, on: today, from: entries)
-
-        #expect(result.count == 2)
-        #expect(result.map(\.foodName) == ["Lunch Plan", "Dinner Plan"])
     }
 
     @Test func progress_whenConsumedExceedsGoal_capsAtOne() {
@@ -276,7 +184,6 @@ struct ProteinTrackerTests {
                 entryDescription: "Feast",
                 timeStamp: today,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
             )
         ]
@@ -297,7 +204,6 @@ struct ProteinTrackerTests {
                 entryDescription: "Lunch",
                 timeStamp: today,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
             )
         ]
@@ -319,7 +225,6 @@ struct ProteinTrackerTests {
                 entryDescription: "Feast",
                 timeStamp: today,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
             )
         ]
@@ -351,7 +256,6 @@ struct ProteinTrackerTests {
                 entryDescription: "Lunch",
                 timeStamp: yesterday,
                 isFavorite: true,
-                isPlan: false,
                 isHistory: false
             ),
             ProteinEntry(
@@ -360,7 +264,6 @@ struct ProteinTrackerTests {
                 entryDescription: "Snack",
                 timeStamp: today,
                 isFavorite: true,
-                isPlan: false,
                 isHistory: false
             ),
             ProteinEntry(
@@ -369,7 +272,6 @@ struct ProteinTrackerTests {
                 entryDescription: "Dinner",
                 timeStamp: today,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
             )
         ]
@@ -392,7 +294,6 @@ struct ProteinTrackerTests {
                 entryDescription: "Lunch",
                 timeStamp: referenceDate,
                 isFavorite: false,
-                isPlan: false,
                 isHistory: true
             )
         ]

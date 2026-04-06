@@ -10,17 +10,10 @@ import SwiftData
 
 enum ProteinDataStore {
     static func ensureSeedData(in context: ModelContext) {
-        let entryCount = (try? context.fetchCount(FetchDescriptor<ProteinEntry>())) ?? 0
         let profileCount = (try? context.fetchCount(FetchDescriptor<UserProfile>())) ?? 0
 
         if profileCount == 0 {
             context.insert(UserProfile())
-        }
-
-        if entryCount == 0 {
-            for entry in makeMockEntries() {
-                context.insert(entry)
-            }
         }
 
         saveIfNeeded(context)
@@ -48,11 +41,9 @@ enum ProteinDataStore {
 
         switch type {
         case .history:
-            filteredByType = entries.filter { $0.isHistory && !$0.isPlan }
-        case .plan:
-            filteredByType = entries.filter { $0.isPlan && !$0.isHistory }
+            filteredByType = entries.filter { $0.isHistory }
         case .favorite:
-            filteredByType = entries.filter { $0.isFavorite && !$0.isPlan && !$0.isHistory }
+            filteredByType = entries.filter { $0.isFavorite && !$0.isHistory }
         }
 
         let filteredByDate: [ProteinEntry]
@@ -62,12 +53,7 @@ enum ProteinDataStore {
             filteredByDate = filteredByType
         }
 
-        switch type {
-        case .history, .favorite:
-            return filteredByDate.sorted { $0.timeStamp > $1.timeStamp }
-        case .plan:
-            return filteredByDate.sorted { $0.timeStamp < $1.timeStamp }
-        }
+        return filteredByDate.sorted { $0.timeStamp > $1.timeStamp }
     }
 
     static func totalProtein(on date: Date, entries allEntries: [ProteinEntry]) -> Double {
@@ -114,7 +100,6 @@ enum ProteinDataStore {
             entryDescription: description,
             timeStamp: date,
             isFavorite: isFavorite,
-            isPlan: false,
             isHistory: true
         )
         context.insert(newEntry)
@@ -131,46 +116,14 @@ enum ProteinDataStore {
         )
     }
 
-    static func addPlanEntry(
-        proteinAmount: Double,
-        foodName: String,
-        description: String,
-        date: Date,
-        isFavorite: Bool = false,
-        in context: ModelContext
-    ) {
-        let newEntry = ProteinEntry(
-            proteinAmount: proteinAmount,
-            foodName: foodName,
-            entryDescription: description,
-            timeStamp: date,
-            isFavorite: isFavorite,
-            isPlan: true,
-            isHistory: false
-        )
-        context.insert(newEntry)
-        saveIfNeeded(context)
-    }
-
-    static func addPlanEntry(from favoriteEntry: ProteinEntry, on date: Date, in context: ModelContext) {
-        addPlanEntry(
-            proteinAmount: favoriteEntry.proteinAmount,
-            foodName: favoriteEntry.foodName,
-            description: favoriteEntry.entryDescription,
-            date: date,
-            isFavorite: true,
-            in: context
-        )
-    }
-
-    static func addFavoriteEntry(proteinAmount: Double, foodName: String, description: String, in context: ModelContext) {
+    static func addFavoriteEntry(proteinAmount: Double, foodName: String, description: String, customEmoji: String? = nil, in context: ModelContext) {
         let newEntry = ProteinEntry(
             proteinAmount: proteinAmount,
             foodName: foodName,
             entryDescription: description,
             isFavorite: true,
-            isPlan: false,
-            isHistory: false
+            isHistory: false,
+            customEmoji: customEmoji
         )
         context.insert(newEntry)
         saveIfNeeded(context)
@@ -179,7 +132,7 @@ enum ProteinDataStore {
     static func addFavoriteEntry(from otherEntry: ProteinEntry, in context: ModelContext) {
         let existingEntries = (try? context.fetch(FetchDescriptor<ProteinEntry>())) ?? []
         let favoriteTemplateExists = existingEntries.contains {
-            $0.foodName == otherEntry.foodName && $0.isFavorite && !$0.isPlan && !$0.isHistory
+            $0.foodName == otherEntry.foodName && $0.isFavorite && !$0.isHistory
         }
 
         if !favoriteTemplateExists {
@@ -195,19 +148,6 @@ enum ProteinDataStore {
             entry.isFavorite = true
         }
 
-        saveIfNeeded(context)
-    }
-
-    static func completePlan(_ entry: ProteinEntry, in context: ModelContext) {
-        entry.isPlan = false
-        entry.isHistory = true
-        entry.timeStamp = Date()
-        saveIfNeeded(context)
-    }
-
-    static func revertToPlan(_ entry: ProteinEntry, in context: ModelContext) {
-        entry.isPlan = true
-        entry.isHistory = false
         saveIfNeeded(context)
     }
 
@@ -246,29 +186,29 @@ enum ProteinDataStore {
         let today = Date()
         let calendar = Calendar.current
 
-        let breakfastItems = [
-            ("Oatmeal & Double Whey", 45.0),
-            ("4 Eggs Scrambled", 50.0),
-            ("Mega Yogurt Parfait", 60.3),
-            ("Protein Pancakes Stack", 40.0)
+        let breakfastItems: [(String, Double, String)] = [
+            ("Oatmeal & Double Whey", 45.0, "🥣"),
+            ("4 Eggs Scrambled", 50.0, "🍳"),
+            ("Mega Yogurt Parfait", 60.3, "🥛"),
+            ("Protein Pancakes Stack", 40.0, "🥞")
         ]
-        let lunchItems = [
-            ("Double Chicken Salad", 60.0),
-            ("Tuna Melt & Shake", 55.8),
-            ("Beef Burrito XL", 55.0),
-            ("Turkey Club w/ Extra Meat", 68.6)
+        let lunchItems: [(String, Double, String)] = [
+            ("Double Chicken Salad", 60.0, "🥗"),
+            ("Tuna Melt & Shake", 55.8, "🐟"),
+            ("Beef Burrito XL", 55.0, "🌮"),
+            ("Turkey Club w/ Extra Meat", 68.6, "🥪")
         ]
-        let dinnerItems = [
-            ("Salmon Fillet (200g)", 50.7),
-            ("Steak (300g)", 65.0),
-            ("Tofu & Beans Stew", 55.0),
-            ("Cod & Lentils", 52.0)
+        let dinnerItems: [(String, Double, String)] = [
+            ("Salmon Fillet (200g)", 50.7, "🐟"),
+            ("Steak (300g)", 65.0, "🥩"),
+            ("Tofu & Beans Stew", 55.0, "🫘"),
+            ("Cod & Lentils", 52.0, "🐟")
         ]
-        let snackItems = [
-            ("Large Protein Bar", 45.6),
-            ("Casein Shake", 30.0),
-            ("Cottage Cheese Tub", 55.0),
-            ("Beef Jerky Pack", 42.7)
+        let snackItems: [(String, Double, String)] = [
+            ("Large Protein Bar", 45.6, "🍫"),
+            ("Casein Shake", 30.0, "🥛"),
+            ("Cottage Cheese Tub", 55.0, "🧀"),
+            ("Beef Jerky Pack", 42.7, "🥩")
         ]
 
         let newHistoryEntries: [ProteinEntry] = (0..<7).flatMap { dayIndex -> [ProteinEntry] in
@@ -296,8 +236,8 @@ enum ProteinDataStore {
                         entryDescription: description,
                         timeStamp: date,
                         isFavorite: false,
-                        isPlan: false,
-                        isHistory: true
+                        isHistory: true,
+                        customEmoji: item.2
                     )
                 )
                 currentTotal += item.1
@@ -325,8 +265,8 @@ enum ProteinDataStore {
                             entryDescription: "Snack",
                             timeStamp: date,
                             isFavorite: false,
-                            isPlan: false,
-                            isHistory: true
+                            isHistory: true,
+                            customEmoji: snackItem.2
                         )
                     )
                     currentTotal += amountToAdd
@@ -344,8 +284,8 @@ enum ProteinDataStore {
                 entryDescription: "Lunch",
                 timeStamp: Date().addingTimeInterval(-10800),
                 isFavorite: true,
-                isPlan: false,
-                isHistory: false
+                isHistory: false,
+                customEmoji: "🍗"
             ),
             ProteinEntry(
                 proteinAmount: 15.0,
@@ -353,8 +293,8 @@ enum ProteinDataStore {
                 entryDescription: "Snack",
                 timeStamp: Date().addingTimeInterval(-18000),
                 isFavorite: true,
-                isPlan: false,
-                isHistory: false
+                isHistory: false,
+                customEmoji: "🥛"
             ),
             ProteinEntry(
                 proteinAmount: 21.0,
@@ -362,8 +302,8 @@ enum ProteinDataStore {
                 entryDescription: "Breakfast",
                 timeStamp: Date().addingTimeInterval(-36000),
                 isFavorite: true,
-                isPlan: false,
-                isHistory: false
+                isHistory: false,
+                customEmoji: "🍳"
             ),
             ProteinEntry(
                 proteinAmount: 30.8,
@@ -371,8 +311,8 @@ enum ProteinDataStore {
                 entryDescription: "Dinner yesterday",
                 timeStamp: Date().addingTimeInterval(-93600),
                 isFavorite: true,
-                isPlan: false,
-                isHistory: false
+                isHistory: false,
+                customEmoji: "🐟"
             ),
             ProteinEntry(
                 proteinAmount: 12.5,
@@ -380,26 +320,17 @@ enum ProteinDataStore {
                 entryDescription: "Late night snack yesterday",
                 timeStamp: Date().addingTimeInterval(-82800),
                 isFavorite: true,
-                isPlan: false,
-                isHistory: false
+                isHistory: false,
+                customEmoji: "🧀"
             ),
             ProteinEntry(
                 proteinAmount: 48.0,
                 foodName: "Whey Protein Shake",
                 entryDescription: "Post-workout",
                 timeStamp: Date().addingTimeInterval(1800),
-                isFavorite: false,
-                isPlan: true,
-                isHistory: false
-            ),
-            ProteinEntry(
-                proteinAmount: 40.2,
-                foodName: "Grilled Chicken Breast",
-                entryDescription: "Lunch",
-                timeStamp: Date().addingTimeInterval(10800),
-                isFavorite: false,
-                isPlan: true,
-                isHistory: false
+                isFavorite: true,
+                isHistory: false,
+                customEmoji: "🥛"
             )
         ]
     }

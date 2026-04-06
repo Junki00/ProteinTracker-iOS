@@ -14,11 +14,10 @@ struct EntryRowView: View {
     @State private var isAdded = false
     
     let entry: ProteinEntry
-    var type: EntryType
-    let onAddToPlanTapped: (() -> Void)?
+    let type: EntryType
     
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: DS.Spacing.m) {
             //Column Left
             ZStack {
                 Circle()
@@ -33,122 +32,54 @@ struct EntryRowView: View {
             
             //Column Middle
             VStack(alignment: .leading) {
-                VStack(alignment:.leading) {
+                VStack(alignment: .leading) {
                     Text(entry.foodName)
                         .foregroundColor(.appPrimaryTextColor)
                         .font(.headline)
                         .lineLimit(1)
-                    Text(entry.entryDescription)
-                        .foregroundColor(.appSecondaryTextColor)
-                        .font(.subheadline)
-                        .lineLimit(1)
-                }
-                Spacer()
-                HStack {
-                    if (type != .favorite) {
-                        HStack {
-                            Text(entry.timeStamp.formattedRelativeString())
-                        }
-                        .font(.subheadline)
-                    } else {
-                        Button(
-                            action: {
-                                onAddToPlanTapped?()
-                            }
-                        ) {
-                            HStack {
-                                Image(systemName: "calendar.badge.plus")
-                                    .font(.subheadline)
-                                Text(String(localized: "entryRow.addToPlan"))
-                                    .font(.caption)
-                            }
-                            .foregroundColor(.appPrimaryColor)
-                        }
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel(String(localized: "accessibility.addToPlan.\(entry.foodName)"))
+                    if !entry.entryDescription.isEmpty {
+                        Text(entry.entryDescription)
+                            .foregroundColor(.appSecondaryTextColor)
+                            .font(.subheadline)
+                            .lineLimit(1)
                     }
                 }
-            }
-            .frame(height: 80)
-            Spacer()
-            
-            //Column Right: Star Icon, Check Icon
-            VStack(alignment: .trailing) {
-                if entry.isFavorite {
-                    Text(String(localized: "entryRow.favorite"))
-                        .font(.caption)
-                        .accessibilityLabel(String(localized: "accessibility.isFavorite"))
-                } else {
-                    Button(
-                        action: {
-                            DS.Haptics.success()
-                            ProteinDataStore.addFavoriteEntry(from: entry, in: modelContext)
-                        }
-                    ) {
-                        Image(systemName: "star")
-                            .foregroundColor(.appPrimaryColor)
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel(String(localized: "accessibility.addToFavorites"))
-                }
-                            
                 Spacer()
                 if type == .history {
-                    Button(
-                        action: {
-                            DS.Haptics.medium()
-                            ProteinDataStore.revertToPlan(entry, in: modelContext)
-                        }
-                    ) {
-                        Image(systemName: "checkmark.circle.fill")
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel(String(localized: "accessibility.revertToPlan"))
-                } else if type == .plan {
-                    Button(
-                        action: {
-                            DS.Haptics.success()
-                            ProteinDataStore.completePlan(entry, in: modelContext)
-                        }
-                    ) {
-                        Image(systemName: "checkmark.circle")
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel(String(localized: "accessibility.completePlan"))
+                    Text(entry.timeStamp.formattedRelativeString())
+                        .font(.subheadline)
                 } else {
                     Button(
                         action: {
                             DS.Haptics.success()
                             ProteinDataStore.addHistoryEntry(from: entry, in: modelContext)
-                            
                             isAdded = true
-                            
-                            
-                            // Reset after delay
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                 isAdded = false
                             }
                         }
                     ) {
-                        Image(systemName: isAdded ? "checkmark.circle.fill" : "plus.circle.fill")
-                            .font(.subheadline)
-                            .foregroundColor(isAdded ? .green : .appPrimaryColor)
+                        HStack(spacing: DS.Spacing.xs) {
+                            Image(systemName: isAdded ? "checkmark.circle.fill" : "plus.circle.fill")
+                            Text(isAdded ? String(localized: "entryRow.added") : String(localized: "entryRow.addToToday"))
+                                .font(.caption)
+                        }
+                        .foregroundColor(isAdded ? .green : .appPrimaryColor)
+                        .font(.subheadline)
                     }
                     .buttonStyle(.borderless)
                     .accessibilityLabel(isAdded ? String(localized: "accessibility.added") : String(localized: "accessibility.addToHistory"))
                 }
             }
-            .foregroundColor(.appPrimaryColor)
             .frame(height: 80)
+            Spacer()
+            
+            //Column Right: Navigate indicator
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(.appSecondaryTextColor)
         }
         .entryRowStyle(type: type, isFavorite: entry.isFavorite)
-    }
-    
-    
-    init(entry: ProteinEntry, type: EntryType,onAddToPlanTapped: (()->Void)? = nil) {
-        self.entry = entry
-        self.type = type
-        self.onAddToPlanTapped = onAddToPlanTapped
     }
 }
 
@@ -173,9 +104,6 @@ extension View {
 
 
 #Preview {
-    PreviewEntryRowView(type: .plan)
-        .modelContainer(ProteinDataStore.previewContainer())
-
     PreviewEntryRowView(type: .favorite)
         .modelContainer(ProteinDataStore.previewContainer())
 
@@ -195,14 +123,8 @@ private struct PreviewEntryRowView: View {
                     Color.appAccentColor.ignoresSafeArea()
                 }
 
-                EntryRowView(
-                    entry: entry,
-                    type: type,
-                    onAddToPlanTapped: {
-                        print("Add to Plan button tapped in preview.")
-                    }
-                )
-                .padding()
+                EntryRowView(entry: entry, type: type)
+                    .padding()
             }
         }
     }
