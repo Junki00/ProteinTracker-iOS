@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-
-    },
     "%.0f" : {
 
     },
@@ -72,6 +69,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "タンパク質記録を追加"
+          }
+        }
+      }
+    },
+    "accessibility.addFavorite" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add favorite"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お気に入りを追加"
           }
         }
       }
@@ -552,6 +565,22 @@
         }
       }
     },
+    "addEntry.addFavorite" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to Favorites"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お気に入りに追加"
+          }
+        }
+      }
+    },
     "addEntry.addNext" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -650,6 +679,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "グラム"
+          }
+        }
+      }
+    },
+    "addEntry.per100gHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Value is per 100 g — adjust to your portion"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100 g あたりの値です — 実際の量に合わせて調整してください"
           }
         }
       }
@@ -1082,6 +1128,23 @@
         }
       }
     },
+    "entryRow.added" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "追加済み"
+          }
+        }
+      }
+    },
     "entryRow.addToPlan" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1095,6 +1158,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "予定に追加"
+          }
+        }
+      }
+    },
+    "entryRow.addToToday" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to Today"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日に追加"
           }
         }
       }
@@ -1197,6 +1277,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "一般的な推奨量：体重1kgあたり1.6g〜2.2g"
+          }
+        }
+      }
+    },
+    "profile.loadSampleData" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load Sample Data"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サンプルデータを読み込む"
+          }
+        }
+      }
+    },
+    "profile.loadSampleDataConfirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "読み込む"
+          }
+        }
+      }
+    },
+    "profile.loadSampleDataMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This will replace all current entries with sample data. This cannot be undone."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在の記録がすべてサンプルデータに置き換わります。この操作は元に戻せません。"
           }
         }
       }
@@ -1309,13 +1440,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profile & Goal"
+            "value" : "Me"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "プロフィール＆目標"
+            "state" : "needs_review",
+            "value" : "マイページ"
           }
         }
       }
@@ -1338,6 +1469,9 @@
       }
     },
     "Protein" : {
+
+    },
+    "Save" : {
 
     },
     "stats.consumed" : {

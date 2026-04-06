@@ -17,6 +17,7 @@ struct EntryDetailView: View {
     @State private var proteinAmount: String = ""
     @State private var foodName: String = ""
     @State private var description: String = ""
+    @State private var selectedEmoji: String?
     @State private var isEditing = false
     @State private var showDeleteConfirmation = false
 
@@ -29,132 +30,140 @@ struct EntryDetailView: View {
     }
 
     var body: some View {
-        VStack(spacing: 24) {
-            ZStack {
-                Circle()
-                    .fill(Color.appCardBackgroundColor)
-                    .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-                    .frame(width: 120, height: 120)
-
-                Text(entry.emojiImage)
-                    .font(.system(size: 80))
-            }
-            .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: 20) {
+        ScrollView {
+            VStack(spacing: 24) {
                 if isEditing {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text(String(localized: "entryDetail.proteinAmount"))
-                            .font(.subheadline)
-                            .foregroundColor(.appSecondaryTextColor)
+                    emojiEditSection
+                } else {
+                    ZStack {
+                        Circle()
+                            .fill(Color.appCardBackgroundColor)
+                            .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+                            .frame(width: 120, height: 120)
 
-                        TextField(String(localized: "entryDetail.proteinPlaceholder"), text: $proteinAmount)
-                            .keyboardType(.decimalPad)
-                            .textFieldStyle(.roundedBorder)
-                            .accessibilityLabel(String(localized: "entryDetail.proteinAmount"))
+                        Text(entry.emojiImage)
+                            .font(.system(size: 80))
+                    }
+                    .accessibilityHidden(true)
+                }
 
-                        Text(String(localized: "entryDetail.foodName"))
-                            .font(.subheadline)
-                            .foregroundColor(.appSecondaryTextColor)
+                VStack(alignment: .leading, spacing: 20) {
+                    if isEditing {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text(String(localized: "entryDetail.proteinAmount"))
+                                .font(.subheadline)
+                                .foregroundColor(.appSecondaryTextColor)
 
-                        TextField(String(localized: "entryDetail.foodNamePlaceholder"), text: $foodName)
-                            .textFieldStyle(.roundedBorder)
-                            .accessibilityLabel(String(localized: "entryDetail.foodName"))
+                            TextField(String(localized: "entryDetail.proteinPlaceholder"), text: $proteinAmount)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(.roundedBorder)
+                                .accessibilityLabel(String(localized: "entryDetail.proteinAmount"))
 
-                        Text(String(localized: "entryDetail.description"))
-                            .font(.subheadline)
-                            .foregroundColor(.appSecondaryTextColor)
+                            Text(String(localized: "entryDetail.foodName"))
+                                .font(.subheadline)
+                                .foregroundColor(.appSecondaryTextColor)
 
-                        ZStack(alignment: .topLeading) {
-                            if description.isEmpty {
-                                Text(String(localized: "entryDetail.descriptionPlaceholder"))
-                                    .foregroundColor(.appSecondaryTextColor.opacity(0.5))
-                                    .padding(.top, 8)
-                                    .padding(.leading, 5)
-                                    .accessibilityHidden(true)
+                            TextField(String(localized: "entryDetail.foodNamePlaceholder"), text: $foodName)
+                                .textFieldStyle(.roundedBorder)
+                                .accessibilityLabel(String(localized: "entryDetail.foodName"))
+
+                            Text(String(localized: "entryDetail.description"))
+                                .font(.subheadline)
+                                .foregroundColor(.appSecondaryTextColor)
+
+                            ZStack(alignment: .topLeading) {
+                                if description.isEmpty {
+                                    Text(String(localized: "entryDetail.descriptionPlaceholder"))
+                                        .foregroundColor(.appSecondaryTextColor.opacity(0.5))
+                                        .padding(.top, 8)
+                                        .padding(.leading, 5)
+                                        .accessibilityHidden(true)
+                                }
+
+                                TextEditor(text: $description)
+                                    .scrollContentBackground(.hidden)
+                                    .background(Color.clear)
+                                    .accessibilityLabel(String(localized: "entryDetail.description"))
+                            }
+                            .frame(minHeight: 100)
+                            .padding(4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.appSubCardBackgroundColor)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.appSecondaryTextColor.opacity(0.2), lineWidth: 1)
+                            )
+                        }
+                    } else {
+                        detailRow(
+                            item: String(localized: "entryDetail.proteinAmount"),
+                            is: String(localized: "entryDetail.proteinGrams.\(String(format: "%.1f", entry.proteinAmount))")
+                        )
+                        Divider()
+                        detailRow(item: String(localized: "entryDetail.foodName"), is: entry.foodName)
+
+                        if !entry.entryDescription.isEmpty {
+                            Divider()
+                            detailRow(item: String(localized: "entryDetail.description"), is: entry.entryDescription)
+                        }
+
+                        Divider()
+
+                        if entry.isHistory {
+                            detailRow(item: String(localized: "entryDetail.consumedAt"), is: entry.timeStamp.formattedRelativeString())
+                        } else {
+                            detailRow(item: String(localized: "entryDetail.createdAt"), is: entry.timeStamp.formattedRelativeString())
+                        }
+                    }
+                }
+                .padding(24)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.appCardBackgroundColor)
+                        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
+                )
+                .padding(.horizontal)
+
+                VStack {
+                    if isEditing {
+                        Button(String(localized: "entryDetail.done")) {
+                            guard let amount = Double(proteinAmount), amount >= 0 else {
+                                return
                             }
 
-                            TextEditor(text: $description)
-                                .scrollContentBackground(.hidden)
-                                .background(Color.clear)
-                                .accessibilityLabel(String(localized: "entryDetail.description"))
-                        }
-                        .frame(minHeight: 100)
-                        .padding(4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.appSubCardBackgroundColor)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.appSecondaryTextColor.opacity(0.2), lineWidth: 1)
-                        )
-                    }
-                } else {
-                    detailRow(
-                        item: String(localized: "entryDetail.proteinAmount"),
-                        is: String(localized: "entryDetail.proteinGrams.\(String(format: "%.1f", entry.proteinAmount))")
-                    )
-                    Divider()
-                    detailRow(item: String(localized: "entryDetail.foodName"), is: entry.foodName)
-                    Divider()
-                    detailRow(item: String(localized: "entryDetail.description"), is: entry.entryDescription)
-                    Divider()
+                            entry.proteinAmount = amount
+                            entry.foodName = foodName
+                            entry.entryDescription = description
+                            entry.customEmoji = selectedEmoji
+                            ProteinDataStore.saveIfNeeded(modelContext)
 
-                    if entry.isPlan {
-                        detailRow(item: String(localized: "entryDetail.scheduledFor"), is: entry.timeStamp.formattedRelativeString())
-                    } else if entry.isHistory {
-                        detailRow(item: String(localized: "entryDetail.consumedAt"), is: entry.timeStamp.formattedRelativeString())
+                            withAnimation {
+                                isEditing = false
+                            }
+                        }
+                        .buttonStyle(.bigAction(isEnabled: isDataValid))
+                        .disabled(!isDataValid)
                     } else {
-                        detailRow(item: String(localized: "entryDetail.createdAt"), is: entry.timeStamp.formattedRelativeString())
+                        Button(String(localized: "entryDetail.edit")) {
+                            proteinAmount = String(format: "%.1f", entry.proteinAmount)
+                            foodName = entry.foodName
+                            description = entry.entryDescription
+                            selectedEmoji = entry.customEmoji
+
+                            withAnimation {
+                                isEditing = true
+                            }
+                        }
+                        .buttonStyle(.bigAction())
                     }
                 }
+                .padding(.horizontal)
+                .padding(.bottom, 10)
             }
-            .padding(24)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.appCardBackgroundColor)
-                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
-            )
-            .padding(.horizontal)
-
-            Spacer()
-
-            VStack {
-                if isEditing {
-                    Button(String(localized: "entryDetail.done")) {
-                        guard let amount = Double(proteinAmount), amount >= 0 else {
-                            return
-                        }
-
-                        entry.proteinAmount = amount
-                        entry.foodName = foodName
-                        entry.entryDescription = description
-                        ProteinDataStore.saveIfNeeded(modelContext)
-
-                        withAnimation {
-                            isEditing = false
-                        }
-                    }
-                    .buttonStyle(.bigAction(isEnabled: isDataValid))
-                    .disabled(!isDataValid)
-                } else {
-                    Button(String(localized: "entryDetail.edit")) {
-                        proteinAmount = String(format: "%.1f", entry.proteinAmount)
-                        foodName = entry.foodName
-                        description = entry.entryDescription
-
-                        withAnimation {
-                            isEditing = true
-                        }
-                    }
-                    .buttonStyle(.bigAction())
-                }
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 10)
+            .padding(.top, 20)
         }
-        .padding(.top, 20)
         .background(Color.appBackgroundColor)
         .toolbar {
             if isEditing {
@@ -186,6 +195,44 @@ struct EntryDetailView: View {
             Button(String(localized: "common.cancel"), role: .cancel) {}
         } message: {
             Text(String(localized: "entryDetail.deleteConfirmation"))
+        }
+    }
+
+    private var emojiEditSection: some View {
+        VStack(spacing: DS.Spacing.s) {
+            ZStack {
+                Circle()
+                    .fill(Color.appCardBackgroundColor)
+                    .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+                    .frame(width: 100, height: 100)
+
+                Text(selectedEmoji ?? entry.emojiImage)
+                    .font(.system(size: 60))
+            }
+            .accessibilityHidden(true)
+
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: DS.Spacing.s) {
+                ForEach(DS.foodEmojis, id: \.self) { emoji in
+                    Button {
+                        DS.Haptics.light(intensity: 0.6)
+                        if selectedEmoji == emoji {
+                            selectedEmoji = nil
+                        } else {
+                            selectedEmoji = emoji
+                        }
+                    } label: {
+                        Text(emoji)
+                            .font(.system(size: 28))
+                            .frame(width: 44, height: 44)
+                            .background(
+                                Circle()
+                                    .fill(selectedEmoji == emoji ? Color.appPrimaryColor.opacity(0.2) : Color.clear)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 24)
         }
     }
 

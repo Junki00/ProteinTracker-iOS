@@ -60,6 +60,14 @@ enum DS {
         static let heavy = SwiftUI.Animation.spring(response: 0.45, dampingFraction: 0.75)
     }
 
+    // MARK: - Food Emojis
+
+    static let foodEmojis = [
+        "🍗", "🥩", "🐟", "🍳", "🥚", "🥛",
+        "🧀", "🫘", "🥜", "🍤", "🥓", "🌮",
+        "🥗", "🍖", "🥣", "🍕", "🥪", "🍜",
+    ]
+
     // MARK: - Haptics
     //
     // Semantic mapping:
