@@ -10,89 +10,120 @@ import SwiftUI
 
 struct UserProfileView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) private var dismiss
     @Query private var userProfiles: [UserProfile]
 
     @State private var tempName = ""
     @State private var tempWeight = 0.0
     @State private var tempMultiplier = 1.6
+    @State private var showResetConfirmation = false
+    @FocusState private var focusedField: Field?
+
+    private enum Field {
+        case name, weight, multiplier
+    }
 
     private var userProfile: UserProfile? {
         userProfiles.first
     }
 
     var body: some View {
-        VStack {
-            Form {
-                Section(header: Text(String(localized: "profile.sectionProfile"))) {
-                    HStack {
-                        Text(String(localized: "profile.name"))
-                        Spacer()
-                        TextField(String(localized: "profile.namePlaceholder"), text: $tempName)
-                            .multilineTextAlignment(.trailing)
-                    }
-                }
-
-                Section(header: Text(String(localized: "profile.sectionGoal")), footer: Text(String(localized: "profile.goalFooter"))) {
-                    HStack {
-                        Text(String(localized: "profile.weight"))
-                        Spacer()
-                        TextField("0.0", value: $tempWeight, format: .number)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .accessibilityLabel(String(localized: "accessibility.weightInput"))
+        ScrollView {
+            VStack {
+                Form {
+                    Section(header: Text(String(localized: "profile.sectionProfile"))) {
+                        HStack {
+                            Text(String(localized: "profile.name"))
+                            Spacer()
+                            TextField(String(localized: "profile.namePlaceholder"), text: $tempName)
+                                .focused($focusedField, equals: .name)
+                                .multilineTextAlignment(.trailing)
+                        }
                     }
 
-                    HStack {
-                        Text(String(localized: "profile.multiplier"))
-                        Spacer()
-                        TextField("1.6", value: $tempMultiplier, format: .number.precision(.fractionLength(1)))
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .accessibilityLabel(String(localized: "accessibility.multiplierInput"))
-                    }
-                }
+                    Section(header: Text(String(localized: "profile.sectionGoal")), footer: Text(String(localized: "profile.goalFooter"))) {
+                        HStack {
+                            Text(String(localized: "profile.weight"))
+                            Spacer()
+                            TextField("0.0", value: $tempWeight, format: .number)
+                                .keyboardType(.decimalPad)
+                                .focused($focusedField, equals: .weight)
+                                .multilineTextAlignment(.trailing)
+                                .accessibilityLabel(String(localized: "accessibility.weightInput"))
+                        }
 
-                Section {
-                    HStack {
-                        Text(String(localized: "profile.dailyTarget"))
-                        Spacer()
-                        let target = tempWeight * tempMultiplier
-                        Text("\(target, specifier: "%.0f") g")
-                            .bold()
-                            .foregroundColor(.appPrimaryColor)
+                        HStack {
+                            Text(String(localized: "profile.multiplier"))
+                            Spacer()
+                            TextField("1.6", value: $tempMultiplier, format: .number.precision(.fractionLength(1)))
+                                .keyboardType(.decimalPad)
+                                .focused($focusedField, equals: .multiplier)
+                                .multilineTextAlignment(.trailing)
+                                .accessibilityLabel(String(localized: "accessibility.multiplierInput"))
+                        }
                     }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel(String(localized: "accessibility.dailyTarget.\(Int(tempWeight * tempMultiplier))"))
+
+                    Section {
+                        HStack {
+                            Text(String(localized: "profile.dailyTarget"))
+                            Spacer()
+                            let target = tempWeight * tempMultiplier
+                            Text("\(target, specifier: "%.0f") g")
+                                .bold()
+                                .foregroundColor(.appPrimaryColor)
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel(String(localized: "accessibility.dailyTarget.\(Int(tempWeight * tempMultiplier))"))
+                    }
                 }
+                .frame(minHeight: 400)
+
+                Button(String(localized: "profile.loadSampleData")) {
+                    showResetConfirmation = true
+                }
+                .font(.footnote)
+                .foregroundColor(.appSecondaryTextColor)
+                .padding(.bottom, 20)
             }
-
-            Spacer()
-
-            Button(String(localized: "profile.saveChanges")) {
-                let profile = userProfile ?? UserProfile()
-
-                if userProfile == nil {
-                    modelContext.insert(profile)
-                }
-
-                profile.userName = tempName
-                profile.userWeight = tempWeight
-                profile.proteinMultiplier = tempMultiplier
-                ProteinDataStore.saveIfNeeded(modelContext)
-                dismiss()
-            }
-            .buttonStyle(.bigAction())
-            .padding(.horizontal)
-            .padding(.bottom, 10)
         }
         .background(Color.appBackgroundColor)
         .navigationTitle(String(localized: "profile.title"))
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Save") {
+                    saveProfile()
+                    focusedField = nil
+                }
+                .accessibilityLabel(String(localized: "profile.saveChanges"))
+            }
+        }
+        .alert(String(localized: "profile.loadSampleData"), isPresented: $showResetConfirmation) {
+            Button(String(localized: "profile.loadSampleDataConfirm"), role: .destructive) {
+                ProteinDataStore.resetToMockData(in: modelContext)
+                DS.Haptics.success()
+            }
+            Button(String(localized: "common.cancel"), role: .cancel) {}
+        } message: {
+            Text(String(localized: "profile.loadSampleDataMessage"))
+        }
         .onAppear {
             tempName = userProfile?.userName ?? "User"
             tempWeight = userProfile?.userWeight ?? 120
             tempMultiplier = userProfile?.proteinMultiplier ?? 2.2
         }
+    }
+
+    private func saveProfile() {
+        let profile = userProfile ?? UserProfile()
+
+        if userProfile == nil {
+            modelContext.insert(profile)
+        }
+
+        profile.userName = tempName
+        profile.userWeight = tempWeight
+        profile.proteinMultiplier = tempMultiplier
+        ProteinDataStore.saveIfNeeded(modelContext)
     }
 }
 

@@ -28,7 +28,9 @@ struct ContentView: View {
                     Text(String(localized: "tab.stats"))
                 }
             
-            UserProfileView()
+            NavigationStack {
+                UserProfileView()
+            }
                 .tabItem {
                     Image(systemName: "person.crop.circle")
                     Text(String(localized: "tab.me"))
