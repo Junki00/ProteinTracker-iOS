@@ -81,9 +81,7 @@ struct EntryRowView: View {
                 } else {
                     Button(
                         action: {
-                            let generator = UINotificationFeedbackGenerator()
-                            generator.notificationOccurred(.success)
-                            
+                            DS.Haptics.success()
                             ProteinDataStore.addFavoriteEntry(from: entry, in: modelContext)
                         }
                     ) {
@@ -98,10 +96,7 @@ struct EntryRowView: View {
                 if type == .history {
                     Button(
                         action: {
-                            
-                            let generator = UIImpactFeedbackGenerator(style: .medium)
-                            generator.impactOccurred()
-                            
+                            DS.Haptics.medium()
                             ProteinDataStore.revertToPlan(entry, in: modelContext)
                         }
                     ) {
@@ -112,10 +107,7 @@ struct EntryRowView: View {
                 } else if type == .plan {
                     Button(
                         action: {
-                            
-                            let generator = UINotificationFeedbackGenerator()
-                            generator.notificationOccurred(.success)
-                            
+                            DS.Haptics.success()
                             ProteinDataStore.completePlan(entry, in: modelContext)
                         }
                     ) {
@@ -126,10 +118,7 @@ struct EntryRowView: View {
                 } else {
                     Button(
                         action: {
-                            
-                            let generator = UINotificationFeedbackGenerator()
-                            generator.notificationOccurred(.success)
-                            
+                            DS.Haptics.success()
                             ProteinDataStore.addHistoryEntry(from: entry, in: modelContext)
                             
                             isAdded = true

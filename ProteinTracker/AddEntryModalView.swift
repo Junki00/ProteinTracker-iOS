@@ -74,8 +74,7 @@ struct AddEntryModalView: View {
                             ToolbarItemGroup(placement: .keyboard) {
                                 Button(action: {
                                     saveEntry()
-                                    let generator = UINotificationFeedbackGenerator()
-                                    generator.notificationOccurred(.success)
+                                    DS.Haptics.success()
                                     proteinAmount = ""
                                 }) {
                                     Text(String(localized: "addEntry.addNext"))
@@ -91,8 +90,7 @@ struct AddEntryModalView: View {
                                 
                                 Button(action: {
                                     saveEntry()
-                                    let generator = UINotificationFeedbackGenerator()
-                                    generator.notificationOccurred(.success)
+                                    DS.Haptics.success()
                                     dismiss()
                                 }) {
                                     Text(String(localized: "addEntry.done"))
@@ -106,8 +104,7 @@ struct AddEntryModalView: View {
                             }
                         }
                         .onChange(of: proteinAmount) {
-                            let generator = UIImpactFeedbackGenerator(style: .light)
-                            generator.impactOccurred(intensity: 0.5)
+                            DS.Haptics.light(intensity: 0.5)
                         }
                     
                     Text(String(localized: "addEntry.grams"))
@@ -151,9 +148,6 @@ struct AddEntryModalView: View {
                 date: date,
                 in: modelContext
             )
-            
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
         }
     }
 }

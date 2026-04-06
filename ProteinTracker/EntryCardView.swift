@@ -23,7 +23,7 @@ struct EntryCardView: View {
         VStack {
             if type == .favorite {
                 if displayedEntries.isEmpty {
-                    VStack(spacing: 16) {
+                    VStack(spacing: DS.Spacing.m) {
                         Spacer()
                         Text(String(localized: "entryCard.noFavorites"))
                             .multilineTextAlignment(.center)
@@ -34,7 +34,7 @@ struct EntryCardView: View {
                     .frame(maxWidth: .infinity, minHeight: 300)
                     .padding(.horizontal)
                 } else {
-                    VStack(spacing: 12) {
+                    VStack(spacing: DS.Spacing.s) {
                         ForEach(displayedEntries) { entry in
                             NavigationLink {
                                 EntryDetailView(entry: entry)
@@ -46,32 +46,42 @@ struct EntryCardView: View {
                     .padding(.horizontal)
                 }
             } else if type == .plan {
-                if displayedEntries.isEmpty {
-                    VStack(spacing: 16) {
-                        Spacer()
-                        Text(String(localized: "entryCard.noPlans"))
-                            .multilineTextAlignment(.center)
-                            .foregroundColor(.appPrimaryColor)
+                VStack {
+                    HStack{
+                        Text(String(localized: "today.plan"))
                             .font(.headline)
+                            .foregroundColor(.appPrimaryTextColor)
                         Spacer()
                     }
-                    .frame(maxWidth: .infinity, minHeight: 300)
-                    .padding(.horizontal)
-                } else {
-                    VStack(spacing: 12) {
-                        ForEach(displayedEntries) { entry in
-                            NavigationLink {
-                                EntryDetailView(entry: entry)
-                            } label: {
-                                EntryRowView(entry: entry, type: .plan)
+                    .padding(.bottom, DS.Spacing.s)
+                    
+                    if displayedEntries.isEmpty {
+                        VStack(spacing: DS.Spacing.m) {
+                            Spacer()
+                            Text(String(localized: "entryCard.noPlans"))
+                                .multilineTextAlignment(.center)
+                                .foregroundColor(.appPrimaryColor)
+                                .font(.headline)
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 300)
+                    } else {
+                        VStack(spacing: DS.Spacing.s) {
+                            ForEach(displayedEntries) { entry in
+                                NavigationLink {
+                                    EntryDetailView(entry: entry)
+                                } label: {
+                                    EntryRowView(entry: entry, type: .plan)
+                                }
                             }
                         }
                     }
-                    .padding(.horizontal)
                 }
+                .padding(.horizontal)
+   
             } else {
                 if displayedEntries.isEmpty {
-                    VStack(spacing: 16) {
+                    VStack(spacing: DS.Spacing.m) {
                         Spacer()
                         Image(systemName: "fork.knife.circle.fill")
                             .font(.system(size: 100))
@@ -90,7 +100,7 @@ struct EntryCardView: View {
                     .padding(.horizontal)
                     .background(Color.appAccentColor)
                 } else {
-                    VStack(spacing: 12) {
+                    VStack(spacing: DS.Spacing.s) {
                         ForEach(displayedEntries) { entry in
                             NavigationLink {
                                 EntryDetailView(entry: entry)
@@ -116,6 +126,6 @@ struct EntryCardView: View {
 }
 
 #Preview {
-    EntryCardView(type: .favorite, date: Date())
+    EntryCardView(type: .plan, date: Date())
         .modelContainer(ProteinDataStore.previewContainer())
 }

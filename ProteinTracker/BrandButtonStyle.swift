@@ -18,13 +18,13 @@ struct BigButtonStyle: ButtonStyle {
             .bold()
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
+            .padding(.vertical, DS.Spacing.m)
             .background(
-                isEnabled ? backgroundColor : disabledColor
+                isEnabled ? backgroundColor : disabledColor,
+                in: Capsule()
             )
-            .cornerRadius(16)
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .animation(.spring(), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(DS.Animation.snappy, value: configuration.isPressed)
     }
 }
 

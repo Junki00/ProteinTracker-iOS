@@ -24,42 +24,42 @@ struct StatsView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                ProteinTrendChart(
-                    weeklyData: weeklyData,
-                    dailyGoal: userProfile?.dailyGoal ?? 0,
-                    selectedDate: $selectedDate
-                )
-                .navigationTitle(String(localized: "stats.weeklyStatistics"))
-
-                if let selectedDate {
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(String(localized: "stats.detailsFor.\(selectedDate.formatted(.dateTime.weekday(.wide).day().month(.wide)))"))
-                            .font(.caption)
-                            .foregroundColor(.appSecondaryTextColor)
-
-                        Text("\(ProteinDataStore.totalProtein(on: selectedDate, entries: entries), specifier: "%.1f")g")
-                            .font(.caption)
-                            .bold()
-                            .foregroundColor(.appPrimaryColor)
-
-                        Text(String(localized: "stats.consumed"))
-                            .font(.caption)
-                            .foregroundColor(.appSecondaryTextColor)
-
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 10)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel(
-                        String(
-                            localized: "accessibility.statsDetail.\(selectedDate.formatted(.dateTime.weekday(.wide).day().month(.wide))).\(String(format: "%.1f", ProteinDataStore.totalProtein(on: selectedDate, entries: entries)))"
-                        )
+            ScrollView{
+                VStack(spacing: 0) {
+                    ProteinTrendChart(
+                        weeklyData: weeklyData,
+                        dailyGoal: userProfile?.dailyGoal ?? 0,
+                        selectedDate: $selectedDate
                     )
-                }
+                    .navigationTitle(String(localized: "stats.weeklyStatistics"))
 
-                ScrollView {
+                    if let selectedDate {
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text(String(localized: "stats.detailsFor.\(selectedDate.formatted(.dateTime.weekday(.wide).day().month(.wide)))"))
+                                .font(.caption)
+                                .foregroundColor(.appSecondaryTextColor)
+
+                            Text("\(ProteinDataStore.totalProtein(on: selectedDate, entries: entries), specifier: "%.1f")g")
+                                .font(.caption)
+                                .bold()
+                                .foregroundColor(.appPrimaryColor)
+
+                            Text(String(localized: "stats.consumed"))
+                                .font(.caption)
+                                .foregroundColor(.appSecondaryTextColor)
+
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 10)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel(
+                            String(
+                                localized: "accessibility.statsDetail.\(selectedDate.formatted(.dateTime.weekday(.wide).day().month(.wide))).\(String(format: "%.1f", ProteinDataStore.totalProtein(on: selectedDate, entries: entries)))"
+                            )
+                        )
+                    }
+
                     if let selectedDate {
                         EntryCardView(type: .history, date: selectedDate)
                             .padding()
@@ -73,6 +73,7 @@ struct StatsView: View {
                         .frame(minHeight: 200)
                         .padding()
                     }
+                    
                 }
             }
             .background(Color.appBackgroundColor)
@@ -131,9 +132,9 @@ private struct ProteinTrendChart: View {
 
                                     if let dayData = selectedDay {
                                         if dayData.totalProtein >= dailyGoal {
-                                            UINotificationFeedbackGenerator().notificationOccurred(.success)
+                                            DS.Haptics.success()
                                         } else {
-                                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                            DS.Haptics.light()
                                         }
                                     }
                                 }

@@ -77,14 +77,14 @@ struct TodayView: View {
     private var dashboardView: some View {
         ZStack(alignment: .bottomTrailing) {
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: DS.Spacing.l) {
                     headerSection
                     stillNeedCard
                     historyCard
                     planCard
                     Spacer().frame(height: 100)
                 }
-                .padding()
+                .padding(DS.Spacing.m)
             }
 
             fabButton
@@ -117,12 +117,11 @@ struct TodayView: View {
             HStack {
                 Text("🌍 \(today, format: .dateTime.weekday().month().day()), \(String(localized: "today.goodDay \(userProfile?.userName ?? "User")"))")
                     .onTapGesture(count: 3) {
-                        let generator = UINotificationFeedbackGenerator()
-                        generator.notificationOccurred(.success)
+                        DS.Haptics.success()
                         ProteinDataStore.resetToMockData(in: modelContext)
                     }
             }
-
+            .font(.body)
             Spacer()
         }
     }
@@ -131,19 +130,19 @@ struct TodayView: View {
         VStack {
             HStack {
                 Text(String(localized: "today.stillNeed"))
-                    .font(.title)
-                    .bold()
+                    .font(.headline)
+                    .foregroundColor(.appBackgroundColor)
                 Spacer()
             }
-            .foregroundColor(.appAccentColor)
+            .padding(.bottom, DS.Spacing.xxs)
+            
 
-            HStack {
-                Text(String(localized: "today.grams.\(String(format: "%.1f", stillNeededToday))"))
+            HStack(alignment: .firstTextBaseline, spacing: DS.Spacing.xs) {
+                Text(verbatim: "\(String(format: "%.1f", stillNeededToday)) Grams")
                     .font(.system(size: 40, weight: .heavy))
-                    .bold()
                     .foregroundColor(.appBackgroundColor)
                     .contentTransition(.numericText())
-                    .animation(.snappy, value: stillNeededToday)
+                    .animation(DS.Animation.snappy, value: stillNeededToday)
 
                 Spacer()
             }
@@ -153,11 +152,11 @@ struct TodayView: View {
                 Spacer()
             }
             .font(.subheadline)
-            .bold()
+            .fontWeight(.medium)
             .foregroundColor(.appBackgroundColor)
         }
         .padding()
-        .background(RoundedRectangle(cornerRadius: 28).fill(Color.appPrimaryColor))
+        .background(RoundedRectangle(cornerRadius: DS.Radius.card).fill(Color.appPrimaryColor))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
             String(
@@ -170,6 +169,8 @@ struct TodayView: View {
         VStack {
             HStack {
                 Text(String(localized: "today.alreadyTaken.\(String(format: "%.1f", totalProteinToday))"))
+                    .font(.headline)
+                    .foregroundColor(.appPrimaryTextColor.opacity(0.7))
                     .font(.subheadline)
                     .bold()
                 Spacer()
@@ -177,12 +178,11 @@ struct TodayView: View {
                     .bold()
                     .rotationEffect(.degrees(isShowingList ? -90 : 0))
             }
-            .padding(.top, 8)
+            .padding(.top)
             .padding(.horizontal)
             .onTapGesture {
-                let generator = UIImpactFeedbackGenerator(style: .medium)
-                generator.impactOccurred()
-                withAnimation {
+                DS.Haptics.medium()
+                withAnimation(DS.Animation.snappy) {
                     isShowingList.toggle()
                 }
             }
@@ -219,23 +219,13 @@ struct TodayView: View {
     }
 
     private var planCard: some View {
-        VStack {
-            VStack {
-                Text(String(localized: "today.plan"))
-                    .font(.subheadline)
-                    .bold()
-                    .foregroundColor(.appPrimaryColor)
-            }
-
-            EntryCardView(type: .plan, date: today)
-        }
+        EntryCardView(type: .plan, date: today)
     }
 
     private var fabButton: some View {
         Button(
             action: {
-                let generator = UIImpactFeedbackGenerator(style: .medium)
-                generator.impactOccurred()
+                DS.Haptics.medium()
                 isShowingAddSheet = true
             }
         ) {

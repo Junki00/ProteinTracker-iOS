@@ -72,9 +72,7 @@ struct AddPlanView: View {
                         
                         // 2. Big Action Button
                         Button(action: {
-                            let generator = UINotificationFeedbackGenerator()
-                            generator.notificationOccurred(.success)
-                            
+                            DS.Haptics.success()
                             ProteinDataStore.addPlanEntry(from: entry, on: selectedDate, in: modelContext)
                             withAnimation {
                                 dismiss()
