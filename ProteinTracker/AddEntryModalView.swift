@@ -135,13 +135,16 @@ struct AddEntryModalView: View {
                 .padding(.bottom, 10)
             }
             .padding(.top, 20)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(String(localized: "addEntry.cancel")) {
-                        dismiss()
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                        }
+                        .accessibilityLabel(String(localized: "addEntry.cancel"))
                     }
                 }
-            }
         }
 
     }
@@ -159,7 +162,7 @@ struct AddEntryModalView: View {
             }
             .accessibilityHidden(true)
 
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: DS.Spacing.s) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 9), spacing: DS.Spacing.s) {
                 ForEach(DS.foodEmojis, id: \.self) { emoji in
                     Button {
                         DS.Haptics.light(intensity: 0.6)
@@ -189,18 +192,6 @@ struct AddEntryModalView: View {
     private var historyBody: some View {
         ScrollView {
             VStack {
-                HStack {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Text(String(localized: "addEntry.cancel"))
-                    }
-                    Spacer()
-                }
-                .padding()
-                .font(.body)
-                .tint(Color.appPrimaryColor)
-                
                 Spacer()
                 
                 if !foodName.isEmpty {
@@ -278,6 +269,16 @@ struct AddEntryModalView: View {
         }
         .padding(.horizontal)
         .background(Color.appCardBackgroundColor)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                }
+                .accessibilityLabel(String(localized: "addEntry.cancel"))
+            }
+        }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 isInputFocused = true

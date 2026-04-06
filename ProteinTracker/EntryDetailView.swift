@@ -167,12 +167,15 @@ struct EntryDetailView: View {
         .background(Color.appBackgroundColor)
         .toolbar {
             if isEditing {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(String(localized: "common.cancel")) {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
                         withAnimation {
                             isEditing = false
                         }
+                    } label: {
+                        Image(systemName: "xmark")
                     }
+                    .accessibilityLabel(String(localized: "common.cancel"))
                 }
             }
 
@@ -211,7 +214,7 @@ struct EntryDetailView: View {
             }
             .accessibilityHidden(true)
 
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: DS.Spacing.s) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 9), spacing: DS.Spacing.s) {
                 ForEach(DS.foodEmojis, id: \.self) { emoji in
                     Button {
                         DS.Haptics.light(intensity: 0.6)

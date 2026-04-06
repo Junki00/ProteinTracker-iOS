@@ -35,9 +35,8 @@ enum DS {
     // MARK: - Corner Radius
 
     enum Radius {
-        static let card: CGFloat = 28
+        static let card: CGFloat = DS.Radius.row + DS.Spacing.m
         static let row: CGFloat = 12
-        static let pill: CGFloat = .infinity   // Capsule
     }
 
     // MARK: - Shadows
@@ -75,15 +74,14 @@ enum DS {
     // ┌──────────────────────────────────┬──────────────────────────────────────────┐
     // │ Semantic context                 │ Haptic call                              │
     // ├──────────────────────────────────┼──────────────────────────────────────────┤
-    // │ Entry saved / plan completed      │ .success  (notification)                 │
-    // │ Favorite added                    │ .success  (notification)                 │
-    // │ UI expand / collapse toggle       │ .medium   (impact)                       │
-    // │ FAB / primary action tap          │ .medium   (impact)                       │
-    // │ Revert / undo action              │ .medium   (impact)                       │
-    // │ Typing digit in big input         │ .light    (impact, intensity 0.5)        │
-    // │ Chart bar selection               │ .light    (impact)                       │
-    // │ Chart bar goal reached            │ .success  (notification)                 │
-    // │ Easter-egg triple tap             │ .success  (notification)                 │
+    // │ Entry saved                      │ .success  (notification)                 │
+    // │ Favorite added                   │ .success  (notification)                 │
+    // │ UI expand / collapse toggle      │ .medium   (impact)                       │
+    // │ FAB / primary action tap         │ .medium   (impact)                       │
+    // │ Revert / undo action             │ .medium   (impact)                       │
+    // │ Typing digit in big input        │ .light    (impact, intensity 0.5)        │
+    // │ Chart bar selection              │ .light    (impact)                       │
+    // │ Chart bar goal reached           │ .success  (notification)                 │
     // └──────────────────────────────────┴──────────────────────────────────────────┘
     //
     // Principles:

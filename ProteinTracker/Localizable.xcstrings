@@ -1531,13 +1531,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Weekly Statistics"
+            "value" : "Statistics"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "週間統計"
+            "value" : "統計"
           }
         }
       }

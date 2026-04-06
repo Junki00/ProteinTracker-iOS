@@ -9,6 +9,8 @@ import SwiftData
 import SwiftUI
 
 struct EntryCardView: View {
+    private static let minimumCardHeight: CGFloat = 300
+
     @Environment(\.modelContext) private var modelContext
     @Query private var entries: [ProteinEntry]
 
@@ -31,7 +33,7 @@ struct EntryCardView: View {
                             .font(.headline)
                         Spacer()
                     }
-                    .frame(maxWidth: .infinity, minHeight: 300)
+                    .frame(maxWidth: .infinity, minHeight: Self.minimumCardHeight)
                     .padding(.horizontal)
                 } else {
                     VStack(spacing: DS.Spacing.s) {
@@ -46,6 +48,7 @@ struct EntryCardView: View {
                             }
                         }
                     }
+                    .frame(maxWidth: .infinity, minHeight: Self.minimumCardHeight, alignment: .top)
                     .padding(.horizontal)
                 }
             } else {
@@ -61,7 +64,7 @@ struct EntryCardView: View {
                             .font(.headline)
                         Spacer()
                     }
-                    .frame(maxWidth: .infinity, minHeight: 300)
+                    .frame(maxWidth: .infinity, minHeight: Self.minimumCardHeight)
                     .padding(.horizontal)
                     .background(Color.appAccentColor)
                 } else {
@@ -77,6 +80,7 @@ struct EntryCardView: View {
                             }
                         }
                     }
+                    .frame(maxWidth: .infinity, minHeight: Self.minimumCardHeight, alignment: .top)
                     .padding(.horizontal)
                 }
             }
