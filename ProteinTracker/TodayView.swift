@@ -44,9 +44,6 @@ struct TodayView: View {
         NavigationStack {
             mainContent
                 .searchable(text: $searchTerm, prompt: String(localized: "today.searchPrompt"))
-                .onChange(of: searchTerm) { _, newValue in
-                    viewModel.performSearch(for: newValue)
-                }
                 .onSubmit(of: .search) {
                     viewModel.performSearch(for: searchTerm)
                 }
