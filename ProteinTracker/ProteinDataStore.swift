@@ -1,5 +1,5 @@
 //
-//  ProteinDataViewModel.swift
+//  ProteinDataStore.swift
 //  ProteinTracker
 //
 //  Created by drx on 2025/07/25.

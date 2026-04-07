@@ -322,12 +322,11 @@ struct ProteinTrackerTests {
 @Suite("TodayViewModel")
 struct TodayViewModelTests {
 
-    /// Helper: perform a search and wait for the debounce + network call to complete.
+    /// Helper: perform a search and wait for the async state updates to complete.
     @MainActor
     private func searchAndWait(_ viewModel: TodayViewModel, for term: String) async {
         viewModel.performSearch(for: term)
-        // Wait for debounce (300ms) + execution to settle
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(100))
     }
 
     @Test @MainActor
@@ -379,7 +378,7 @@ struct TodayViewModelTests {
     }
 
     @Test @MainActor
-    func rapidSearches_cancelsOldAndKeepsLatest() async {
+    func rapidSearches_latestResultWins() async {
         let mockProducts = [
             Product(
                 productName: "Final Result",
@@ -389,12 +388,11 @@ struct TodayViewModelTests {
         let mockService = MockFoodSearchService(result: .success(mockProducts))
         let viewModel = TodayViewModel(foodSearchService: mockService)
 
-        // Simulate rapid typing — only the last call should produce results
         viewModel.performSearch(for: "ch")
         viewModel.performSearch(for: "chi")
         viewModel.performSearch(for: "chicken")
 
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(100))
 
         #expect(viewModel.searchResults.count == 1)
         #expect(viewModel.searchResults.first?.productName == "Final Result")
@@ -416,4 +414,3 @@ struct TodayViewModelTests {
         #expect(viewModel.isShowingErrorAlert == false)
     }
 }
-
