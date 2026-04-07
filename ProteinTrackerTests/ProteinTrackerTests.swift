@@ -20,8 +20,8 @@ struct MockFoodSearchService: FoodSearchService {
 }
 
 // MARK: - ProteinDataStore Tests
-
-struct ProteinTrackerTests {
+@Suite("ProteinDataStore")
+struct ProteinDataStoreTests {
     @Test func totalProtein_onSameDay_sumsOnlyHistoryEntriesForThatDay() {
         let calendar = Calendar(identifier: .gregorian)
         let today = calendar.date(from: DateComponents(year: 2025, month: 1, day: 15, hour: 12))!
@@ -318,17 +318,15 @@ struct ProteinTrackerTests {
     }
 }
 // MARK: - TodayViewModel Tests
-
 @Suite("TodayViewModel")
 struct TodayViewModelTests {
-
     /// Helper: perform a search and wait for the async state updates to complete.
     @MainActor
     private func searchAndWait(_ viewModel: TodayViewModel, for term: String) async {
         viewModel.performSearch(for: term)
         try? await Task.sleep(for: .milliseconds(100))
     }
-
+    
     @Test @MainActor
     func searchSuccess_populatesResults() async {
         let mockProducts = [
@@ -362,7 +360,7 @@ struct TodayViewModelTests {
     }
 
     @Test @MainActor
-    func searchEmptyTerm_clearsResults() async {
+    func searchEmptyTerm_showsInvalidSearchTermError() async {
         let mockProducts = [
             Product(
                 productName: "Should Not Appear",
@@ -375,6 +373,12 @@ struct TodayViewModelTests {
         viewModel.performSearch(for: "   ")
 
         #expect(viewModel.searchResults.isEmpty)
+        #expect(viewModel.isShowingErrorAlert == true)
+        if case .invalidSearchTerm = viewModel.searchError as? NetworkError {
+            #expect(Bool(true))
+        } else {
+            Issue.record("Expected invalidSearchTerm error for blank search input.")
+        }
     }
 
     @Test @MainActor

@@ -16,7 +16,9 @@ enum NetworkError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .invalidSearchTerm, .invalidURL:
+        case .invalidSearchTerm:
+            return String(localized: "network.invalidSearchTerm")
+        case .invalidURL:
             return String(localized: "network.constructionError")
         case .httpError, .decodingFailed, .noConnection:
             return String(localized: "network.requestFailed")
@@ -35,6 +37,7 @@ struct Product: Codable, Identifiable {
     var proteinValue: Double {
         nutriments.proteins100g ?? 0.0
     }
+    
     enum CodingKeys: String, CodingKey {
         case productName = "product_name"
         case nutriments
@@ -53,6 +56,8 @@ protocol FoodSearchService: Sendable {
     func searchFoodInfo(searchName: String) async throws -> [Product]
 }
 
+
+
 struct NetworkService: FoodSearchService {
     private static let baseURL = "https://world.openfoodfacts.org/cgi/search.pl"
     private static let timeoutInterval: TimeInterval = 30
@@ -68,7 +73,7 @@ struct NetworkService: FoodSearchService {
             URLQueryItem(name: "action", value: "process"),
             URLQueryItem(name: "json", value: "1"),
         ]
-
+        
         guard let url = components?.url else {
             throw NetworkError.invalidURL(components: components?.string ?? "nil")
         }
@@ -90,14 +95,14 @@ struct NetworkService: FoodSearchService {
             || error.code == .networkConnectionLost {
             throw NetworkError.noConnection(underlying: error)
         }
-
+        
         guard let httpResponse = response as? HTTPURLResponse else {
             throw NetworkError.httpError(statusCode: -1)
         }
         guard httpResponse.statusCode == 200 else {
             throw NetworkError.httpError(statusCode: httpResponse.statusCode)
         }
-
+        
         do {
             return try JSONDecoder().decode(SearchResponse.self, from: data).products
         } catch {
@@ -105,5 +110,4 @@ struct NetworkService: FoodSearchService {
         }
     }
 }
-
 

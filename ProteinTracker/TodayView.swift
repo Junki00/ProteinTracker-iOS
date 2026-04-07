@@ -40,6 +40,10 @@ struct TodayView: View {
         ProteinDataStore.progress(on: today, entries: entries, profile: userProfile)
     }
 
+    private var hasSearchQuery: Bool {
+        !searchTerm.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     var body: some View {
         NavigationStack {
             mainContent
@@ -63,10 +67,10 @@ struct TodayView: View {
 
     @ViewBuilder
     private var mainContent: some View {
-        if searchTerm.isEmpty {
-            dashboardView
-        } else {
+        if hasSearchQuery {
             searchResultView
+        } else {
+            dashboardView
         }
     }
 

@@ -1230,6 +1230,23 @@
         }
       }
     },
+    "network.invalidSearchTerm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please enter a food name to search."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検索する食品名を入力してください。"
+          }
+        }
+      }
+    },
     "network.requestFailed" : {
       "extractionState" : "manual",
       "localizations" : {

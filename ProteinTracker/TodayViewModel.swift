@@ -32,6 +32,8 @@ final class TodayViewModel {
         let trimmed = term.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             searchResults = []
+            searchError = NetworkError.invalidSearchTerm
+            isShowingErrorAlert = true
             return
         }
 
