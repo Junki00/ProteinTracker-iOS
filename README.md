@@ -1,6 +1,7 @@
 # ProteinTracker
-
 A native iOS app for tracking daily protein intake — built with SwiftUI, SwiftData, and modern Swift concurrency.
+
+<img width=infinite alt="protein tracker for behance 001" src="https://github.com/user-attachments/assets/6cced585-28e1-4650-b90f-7835176ab7d7" />
 
 <!-- TODO: Replace with your own screenshots -->
 <!-- <p align="center">
